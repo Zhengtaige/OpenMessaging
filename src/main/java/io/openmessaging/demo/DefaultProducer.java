@@ -10,8 +10,11 @@ import io.openmessaging.Producer;
 import io.openmessaging.Promise;
 
 public class DefaultProducer  implements Producer {
+
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = MessageStore.getInstance();
+
+    private MyMessageStore myMessageStore = MyMessageStore.getInstance();
 
     private KeyValue properties;
 
@@ -44,10 +47,11 @@ public class DefaultProducer  implements Producer {
         if (message == null) throw new ClientOMSException("Message should not be null");
         String topic = message.headers().getString(MessageHeader.TOPIC);
         String queue = message.headers().getString(MessageHeader.QUEUE);
+        //一个message要么是topic里面的要么是queue里面的，这个是在初始化数据的时候定的，BytesMessage createBytesMessageToTopic(String topic, byte[] body)，topic作为了header
         if ((topic == null && queue == null) || (topic != null && queue != null)) {
             throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
         }
-
+        myMessageStore.putMessage(topic, queue, ((DefaultBytesMessage)message).getBody());
         messageStore.putMessage(topic != null ? topic : queue, message);
     }
 

@@ -24,7 +24,7 @@ public class DemoTester {
         //这个测试程序的测试逻辑与实际评测相似，但注意这里是单线程的，实际测试时会是多线程的，并且发送完之后会Kill进程，再起消费逻辑
 
         Producer producer = new DefaultProducer(properties);
-
+        Producer producer1 = new DefaultProducer(properties);
         //构造测试数据
         String topic1 = "TOPIC1"; //实际测试时大概会有100个Topic左右
         String topic2 = "TOPIC2"; //实际测试时大概会有100个Topic左右
@@ -88,6 +88,7 @@ public class DemoTester {
         }
 
         //消费样例2，实际测试时会Kill掉发送进程，另取进程进行消费
+        //这是多个topic的情况
         {
             PullConsumer consumer2 = new DefaultPullConsumer(properties);
             List<String> topics = new ArrayList<>();
@@ -109,6 +110,7 @@ public class DemoTester {
                 String queue = message.headers().getString(MessageHeader.QUEUE);
                 //实际测试时，会一一比较各个字段
                 if (topic != null) {
+                    //遍历topic
                     if (topic.equals(topic1)) {
                         Assert.assertEquals(messagesForTopic1.get(topic1Offset++), message);
                     } else {
