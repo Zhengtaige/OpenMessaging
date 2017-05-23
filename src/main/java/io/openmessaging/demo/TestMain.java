@@ -10,17 +10,17 @@ import java.nio.file.Paths;
  */
 public class TestMain {
     public static void main(String[] args) throws IOException {
-        Path path = Paths.get("./test");
+        Path path = Paths.get("/test");
         Files.createDirectories(path);
         Runnable runnable = () -> {
             while (true) {
                 int t = getNewInt();
-                if (t > 100000) {
+                if (t > 50000) {
                     System.out.println("end: "+System.currentTimeMillis()+ Thread.currentThread().getName());
                     return;
                 }
                 try {
-                    Files.write(Paths.get("./test/"+t), new byte[]{(byte) i});
+                    Files.write(Paths.get("/test/"+t), new byte[]{(byte) i});
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -33,7 +33,7 @@ public class TestMain {
         }
 
         try {
-            Thread.sleep(8000);
+            Thread.sleep(15000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -42,13 +42,12 @@ public class TestMain {
             byte[] bytes;
             while (true) {
                 int t = getNewInt();
-                if (t > 100000) {
+                if (t > 50000) {
                     System.out.println("end: "+System.currentTimeMillis()+ Thread.currentThread().getName());
                     return;
                 }
                 try {
-                    bytes = Files.readAllBytes(Paths.get("./test/"+t));
-                    System.out.println(bytes);
+                    bytes = Files.readAllBytes(Paths.get("/test/"+t));
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
