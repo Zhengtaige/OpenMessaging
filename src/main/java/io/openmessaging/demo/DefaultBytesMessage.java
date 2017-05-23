@@ -1,8 +1,14 @@
 package io.openmessaging.demo;
 
+import com.sun.xml.internal.bind.v2.TODO;
 import io.openmessaging.BytesMessage;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
+
+import java.io.Serializable;
+import java.nio.channels.FileChannel;
+import java.util.Iterator;
+import java.util.Set;
 
 public class DefaultBytesMessage implements BytesMessage {
 
@@ -72,5 +78,19 @@ public class DefaultBytesMessage implements BytesMessage {
         if (properties == null) properties = new DefaultKeyValue();
         properties.put(key, value);
         return this;
+    }
+
+    @Override public String toString(){
+        String ret=new String();
+        Set<String> keySet = headers.keySet();
+        Iterator<String> iterator=keySet.iterator();
+        while(iterator.hasNext()){
+            String key=iterator.next();
+            ret+=key+"=";
+            ret+=headers.getString(key)+"\n";
+            //TODO:不能确定value是什么类型的，需要捕捉异常或者实现get方法直接获取Object对象，这里先默认都是String
+        }
+        ret+="\n";
+        return ret;
     }
 }
