@@ -1,5 +1,6 @@
 package io.openmessaging.demo;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -8,7 +9,7 @@ import io.openmessaging.BytesMessage;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 
-public class DefaultBytesMessage implements BytesMessage {
+public class DefaultBytesMessage implements BytesMessage,Serializable{
 
     private KeyValue headers = new DefaultKeyValue();
     private KeyValue properties;
@@ -99,4 +100,5 @@ public class DefaultBytesMessage implements BytesMessage {
         ret+=body.toString();
         return ret;
     }
+
 }

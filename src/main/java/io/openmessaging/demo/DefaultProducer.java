@@ -9,12 +9,12 @@ import io.openmessaging.MessageHeader;
 import io.openmessaging.Producer;
 import io.openmessaging.Promise;
 
+import java.io.IOException;
+
 public class DefaultProducer  implements Producer {
 
     private MessageFactory messageFactory = new DefaultMessageFactory();
     private MessageStore messageStore = MessageStore.getInstance();
-
-    private MyMessageStore myMessageStore = MyMessageStore.getInstance();
 
     private KeyValue properties;
 
@@ -51,8 +51,11 @@ public class DefaultProducer  implements Producer {
         if ((topic == null && queue == null) || (topic != null && queue != null)) {
             throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
         }
-        myMessageStore.putMessage(topic, queue, ((DefaultBytesMessage)message).getBody());
-        messageStore.putMessage(topic != null ? topic : queue, message);
+        try {
+            messageStore.putMessage(topic != null ? topic : queue, message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override public void send(Message message, KeyValue properties) {

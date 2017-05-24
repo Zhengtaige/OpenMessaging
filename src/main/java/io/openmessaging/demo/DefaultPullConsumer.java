@@ -64,6 +64,4 @@ public class DefaultPullConsumer implements PullConsumer {
         bucketList.clear();
         bucketList.addAll(buckets);
     }
-
-
 }

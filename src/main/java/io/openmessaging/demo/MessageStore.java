@@ -2,10 +2,7 @@ package io.openmessaging.demo;
 
 import io.openmessaging.Message;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
@@ -29,9 +26,9 @@ public class MessageStore {
 
     public synchronized void putMessage(String bucket, Message message) throws IOException {
         if(!fileChannelMap.containsKey(bucket)){
-            FileInputStream fi=null;
+            FileOutputStream fi=null;
             try {
-                fi = new FileInputStream(new File(bucket+".ms"));
+                fi = new FileOutputStream(new File(bucket+".ms"));
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -40,15 +37,13 @@ public class MessageStore {
             fileChannelMap.put(bucket,fileChannel);
         }
         FileChannel fileChannel = fileChannelMap.get(bucket);
-        String messageInfo=message.toString();
-        int messagelength=messageInfo.length();
-        char[] infosizetag=new char[3];
-        infosizetag[0]=(char) (messagelength&15);
-        infosizetag[1]=(char) ((messagelength>>8)&15);
-        infosizetag[2]=(char) ((messagelength>>8)&15);
+        byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
+        int messagelength=serializeBytes.length+4;
+        byte[] infosizetag=intToByteArray(messagelength);
         ByteBuffer buf = ByteBuffer.allocate(messagelength);
+        buf.put(byteMerger(infosizetag,serializeBytes));
+        buf.rewind();
         fileChannel.write(buf);
-        fileChannel.close();
     }
 
    public synchronized Message pullMessage(String queue, String bucket) {
@@ -69,5 +64,37 @@ public class MessageStore {
         offsetMap.put(bucket, ++offset);
         return message;
    }
+
+    public byte[] byteMerger(byte[] byte_1, byte[] byte_2){
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
+        return byte_3;
+    }
+
+    public static byte[] intToByteArray(int i) {
+        byte[] result = new byte[4];
+        //由高位到低位
+        result[0] = (byte)((i >> 24) & 0xFF);
+        result[1] = (byte)((i >> 16) & 0xFF);
+        result[2] = (byte)((i >> 8) & 0xFF);
+        result[3] = (byte)(i & 0xFF);
+        return result;
+    }
+
+    /**
+     * byte[]转int
+     * @param bytes
+     * @return
+     */
+    public static int byteArrayToInt(byte[] bytes) {
+        int value= 0;
+        //由高位到低位
+        for (int i = 0; i < 4; i++) {
+            int shift= (4 - 1 - i) * 8;
+            value +=(bytes[i] & 0x000000FF) << shift;//往高位游
+        }
+        return value;
+    }
 }
 
