@@ -38,31 +38,59 @@ public class MessageStore {
         }
         FileChannel fileChannel = fileChannelMap.get(bucket);
         byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
-        int messagelength=serializeBytes.length+4;
+        int messagelength=serializeBytes.length;
         byte[] infosizetag=intToByteArray(messagelength);
-        ByteBuffer buf = ByteBuffer.allocate(messagelength);
+        ByteBuffer buf = ByteBuffer.allocate(messagelength+4);
         buf.put(byteMerger(infosizetag,serializeBytes));
         buf.rewind();
         fileChannel.write(buf);
     }
 
-   public synchronized Message pullMessage(String queue, String bucket) {
-        ArrayList<Message> bucketList = messageBuckets.get(bucket);
-        if (bucketList == null) {
-            return null;
-        }
-        HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
-        if (offsetMap == null) {
-            offsetMap = new HashMap<>();
-            queueOffsets.put(queue, offsetMap);
-        }
-        int offset = offsetMap.getOrDefault(bucket, 0);
-        if (offset >= bucketList.size()) {
-            return null;
-        }
-        Message message = bucketList.get(offset);
-        offsetMap.put(bucket, ++offset);
-        return message;
+   public synchronized Message pullMessage(String queue, String bucket) throws IOException {
+//        ArrayList<Message> bucketList = messageBuckets.get(bucket);
+//        if (bucketList == null) {
+//            return null;
+//        }
+//        HashMap<String, Integer> offsetMap = queueOffsets.get(queue);
+//        if (offsetMap == null) {
+//            offsetMap = new HashMap<>();
+//            queueOffsets.put(queue, offsetMap);
+//        }
+//        int offset = offsetMap.getOrDefault(bucket, 0);
+//        if (offset >= bucketList.size()) {
+//            return null;
+//        }
+//        Message message = bucketList.get(offset);
+//        offsetMap.put(bucket, ++offset);
+       if(!fileChannelMap.containsKey(bucket)){
+           FileOutputStream fi=null;
+           try {
+               fi = new FileOutputStream(new File(bucket+".ms"));
+
+           } catch (FileNotFoundException e) {
+               e.printStackTrace();
+           }
+           FileChannel fileChannel = fi.getChannel();
+           fileChannelMap.put(bucket,fileChannel);
+       }
+       FileChannel fileChannel = fileChannelMap.get(bucket);
+       //读取message长度数据，4个字节
+       ByteBuffer byteBuffer = ByteBuffer.allocate(4);
+       if(fileChannel.read(byteBuffer)==-1){
+           return null;
+       }
+       byteBuffer.rewind();
+       byte[] bytes = new byte[4];
+       byteBuffer.get(bytes);
+       int mesagelen=byteArrayToInt(bytes);
+       //根据message长度读取message信息
+       byteBuffer = ByteBuffer.allocate(mesagelen);
+       fileChannel.read(byteBuffer);
+       bytes = new byte[mesagelen];
+       byteBuffer.rewind();
+       byteBuffer.get(bytes);
+       DefaultBytesMessage defaultBytesMessage = (DefaultBytesMessage) SerializeUtil.unserialize(bytes);
+       return defaultBytesMessage;
    }
 
     public byte[] byteMerger(byte[] byte_1, byte[] byte_2){
