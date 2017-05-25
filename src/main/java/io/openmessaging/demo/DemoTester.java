@@ -5,6 +5,8 @@ import io.openmessaging.Message;
 import io.openmessaging.MessageHeader;
 import io.openmessaging.Producer;
 import io.openmessaging.PullConsumer;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +56,11 @@ public class DemoTester {
         long T1 = end - start;
         System.out.println(T1);
         //请保证数据写入磁盘中
-
+        try {
+            MessageStore.closeFilechannel();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         //消费样例1，实际测试时会Kill掉发送进程，另取进程进行消费
         {
             PullConsumer consumer1 = new DefaultPullConsumer(properties);

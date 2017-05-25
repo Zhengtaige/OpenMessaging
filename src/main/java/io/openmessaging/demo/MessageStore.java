@@ -5,9 +5,7 @@ import io.openmessaging.Message;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class MessageStore {
 
@@ -21,7 +19,7 @@ public class MessageStore {
 
     private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
 
-    private Map<String,FileChannel> fileChannelMap = new HashMap<>();
+    private static Map<String,FileChannel> fileChannelMap = new HashMap<>();
 
 
     public synchronized void putMessage(String bucket, Message message) throws IOException {
@@ -63,9 +61,9 @@ public class MessageStore {
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
        if(!fileChannelMap.containsKey(bucket)){
-           FileOutputStream fi=null;
+           FileInputStream fi=null;
            try {
-               fi = new FileOutputStream(new File(bucket+".ms"));
+               fi = new FileInputStream(new File(bucket+".ms"));
 
            } catch (FileNotFoundException e) {
                e.printStackTrace();
@@ -123,6 +121,15 @@ public class MessageStore {
             value +=(bytes[i] & 0x000000FF) << shift;//往高位游
         }
         return value;
+    }
+
+    public static void closeFilechannel() throws IOException {
+        Set<String> keySet = fileChannelMap.keySet();
+        Iterator<Map.Entry<String, FileChannel>> iterator = fileChannelMap.entrySet().iterator();
+        while(iterator.hasNext()){
+            iterator.next().getValue().close();
+        }
+        fileChannelMap.clear();
     }
 }
 
