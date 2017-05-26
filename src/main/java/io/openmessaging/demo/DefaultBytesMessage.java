@@ -78,6 +78,7 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
         properties.put(key, value);
         return this;
     }
+
 //    @Override public String toString(){
 //        String ret=new String();
 //        Set<String> keySet = headers.keySet();
