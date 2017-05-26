@@ -13,6 +13,7 @@ public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
     private static String path;
+    private boolean closing = false;
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -138,7 +139,11 @@ public class MessageStore {
         return value;
     }
 
-    public static void closeFilechannel() throws IOException {
+    public void closeFilechannel() throws IOException {
+        synchronized (this) {
+            if (closing) return;
+            closing = true;
+        }
         Set<String> keySet = fileChannelMap.keySet();
         Iterator<Map.Entry<String, FileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){
