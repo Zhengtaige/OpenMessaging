@@ -14,12 +14,15 @@ import java.io.IOException;
 public class DefaultProducer  implements Producer {
 
     private MessageFactory messageFactory = new DefaultMessageFactory();
-    private MessageStore messageStore = MessageStore.getInstance();
+
 
     private KeyValue properties;
 
+    private MessageStore messageStore = MessageStore.getInstance();
+
     public DefaultProducer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setPath(properties.getString("STORE_PATH"));
     }
 
 
