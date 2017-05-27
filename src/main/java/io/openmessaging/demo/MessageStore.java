@@ -8,12 +8,17 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
     private static String path;
+    private static Map<String, FileChannel> fileChannelMap = new HashMap<>();
     private boolean closing = false;
+    private AtomicInteger atomicInteger = new AtomicInteger();
+    private Map<String, ArrayList<Message>> messageBuckets = new HashMap<>();
+    private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -31,12 +36,31 @@ public class MessageStore {
         }
     }
 
-    private Map<String, ArrayList<Message>> messageBuckets = new HashMap<>();
+    public static byte[] intToByteArray(int i) {
+        byte[] result = new byte[4];
+        //由高位到低位
+        result[0] = (byte) ((i >> 24) & 0xFF);
+        result[1] = (byte) ((i >> 16) & 0xFF);
+        result[2] = (byte) ((i >> 8) & 0xFF);
+        result[3] = (byte) (i & 0xFF);
+        return result;
+    }
 
-    private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
-
-    private static Map<String,FileChannel> fileChannelMap = new HashMap<>();
-
+    /**
+     * byte[]转int
+     *
+     * @param bytes
+     * @return
+     */
+    public static int byteArrayToInt(byte[] bytes) {
+        int value = 0;
+        //由高位到低位
+        for (int i = 0; i < 4; i++) {
+            int shift = (4 - 1 - i) * 8;
+            value += (bytes[i] & 0x000000FF) << shift;//往高位游
+        }
+        return value;
+    }
 
     public synchronized void putMessage(String bucket, Message message) throws IOException {
         if(!fileChannelMap.containsKey(bucket)){
@@ -58,7 +82,12 @@ public class MessageStore {
         buf.put(byteMerger(infosizetag,serializeBytes));
         buf.rewind();
         fileChannel.write(buf);
-        fileChannel.force(false);
+
+        if (atomicInteger.incrementAndGet() > 8) {
+            fileChannel.force(false);
+            atomicInteger.set(0);
+        }
+
     }
 
    public synchronized Message pullMessage(String queue, String bucket) throws IOException {
@@ -113,31 +142,6 @@ public class MessageStore {
         System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
         System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
         return byte_3;
-    }
-
-    public static byte[] intToByteArray(int i) {
-        byte[] result = new byte[4];
-        //由高位到低位
-        result[0] = (byte)((i >> 24) & 0xFF);
-        result[1] = (byte)((i >> 16) & 0xFF);
-        result[2] = (byte)((i >> 8) & 0xFF);
-        result[3] = (byte)(i & 0xFF);
-        return result;
-    }
-
-    /**
-     * byte[]转int
-     * @param bytes
-     * @return
-     */
-    public static int byteArrayToInt(byte[] bytes) {
-        int value= 0;
-        //由高位到低位
-        for (int i = 0; i < 4; i++) {
-            int shift= (4 - 1 - i) * 8;
-            value +=(bytes[i] & 0x000000FF) << shift;//往高位游
-        }
-        return value;
     }
 
     public void closeFilechannel() throws IOException {
