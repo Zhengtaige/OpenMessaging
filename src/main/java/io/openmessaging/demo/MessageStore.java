@@ -14,11 +14,9 @@ public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
     private static String path;
-    private static Map<String, FileChannel> fileChannelMap = new HashMap<>();
+    private static Map<String, MyFileChannel> fileChannelMap = new HashMap<>();
     private boolean closing = false;
     private AtomicInteger atomicInteger = new AtomicInteger();
-    private Map<String, ArrayList<Message>> messageBuckets = new HashMap<>();
-    private Map<String, HashMap<String, Integer>> queueOffsets = new HashMap<>();
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -36,58 +34,17 @@ public class MessageStore {
         }
     }
 
-    public static byte[] intToByteArray(int i) {
-        byte[] result = new byte[4];
-        //由高位到低位
-        result[0] = (byte) ((i >> 24) & 0xFF);
-        result[1] = (byte) ((i >> 16) & 0xFF);
-        result[2] = (byte) ((i >> 8) & 0xFF);
-        result[3] = (byte) (i & 0xFF);
-        return result;
-    }
 
-    /**
-     * byte[]转int
-     *
-     * @param bytes
-     * @return
-     */
-    public static int byteArrayToInt(byte[] bytes) {
-        int value = 0;
-        //由高位到低位
-        for (int i = 0; i < 4; i++) {
-            int shift = (4 - 1 - i) * 8;
-            value += (bytes[i] & 0x000000FF) << shift;//往高位游
-        }
-        return value;
-    }
 
-    public synchronized void putMessage(String bucket, Message message) throws IOException {
+    public  synchronized void putMessage(String bucket, Message message) throws IOException {
+        MyFileChannel myfileChannel=null;
         if(!fileChannelMap.containsKey(bucket)){
-            FileOutputStream fi=null;
-            try {
-                fi = new FileOutputStream(new File(path+"\\"+bucket+".ms"));
-
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            FileChannel fileChannel = fi.getChannel();
-            fileChannelMap.put(bucket,fileChannel);
+            myfileChannel= new MyFileChannel(path+"\\"+bucket,MyFileChannel.WRITE);
+            fileChannelMap.put(bucket,myfileChannel);
+        }else{
+            myfileChannel = fileChannelMap.get(bucket);
         }
-        FileChannel fileChannel = fileChannelMap.get(bucket);
-        byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
-        int messagelength=serializeBytes.length;
-        byte[] infosizetag=intToByteArray(messagelength);
-        ByteBuffer buf = ByteBuffer.allocate(messagelength+4);
-        buf.put(byteMerger(infosizetag,serializeBytes));
-        buf.rewind();
-        fileChannel.write(buf);
-
-        if (atomicInteger.incrementAndGet() > 10000) {
-            fileChannel.force(false);
-            atomicInteger.set(0);
-        }
-
+        myfileChannel.write(message);
     }
 
    public synchronized Message pullMessage(String queue, String bucket) throws IOException {
@@ -106,55 +63,36 @@ public class MessageStore {
 //        }
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
+       MyFileChannel myfileChannel=null;
        if(!fileChannelMap.containsKey(bucket)){
-           FileInputStream fi=null;
-           try {
-               fi = new FileInputStream(new File(path+"\\"+bucket+".ms"));
-
-           } catch (FileNotFoundException e) {
-               e.printStackTrace();
-           }
-           FileChannel fileChannel = fi.getChannel();
-           fileChannelMap.put(bucket,fileChannel);
+           myfileChannel= new MyFileChannel(path+"\\"+bucket, MyFileChannel.READ);
+           fileChannelMap.put(bucket,myfileChannel);
+       }else{
+           myfileChannel = fileChannelMap.get(bucket);
        }
-       FileChannel fileChannel = fileChannelMap.get(bucket);
-       //读取message长度数据，4个字节
-       ByteBuffer byteBuffer = ByteBuffer.allocate(4);
-       if(fileChannel.read(byteBuffer)==-1){
-           return null;
-       }
-       byteBuffer.rewind();
-       byte[] bytes = new byte[4];
-       byteBuffer.get(bytes);
-       int mesagelen=byteArrayToInt(bytes);
-       //根据message长度读取message信息
-       byteBuffer = ByteBuffer.allocate(mesagelen);
-       fileChannel.read(byteBuffer);
-       bytes = new byte[mesagelen];
-       byteBuffer.rewind();
-       byteBuffer.get(bytes);
-       DefaultBytesMessage defaultBytesMessage = (DefaultBytesMessage) SerializeUtil.unserialize(bytes);
-       return defaultBytesMessage;
+       return myfileChannel.read();
    }
 
-    public byte[] byteMerger(byte[] byte_1, byte[] byte_2){
-        byte[] byte_3 = new byte[byte_1.length+byte_2.length];
-        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
-        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
-        return byte_3;
-    }
+
 
     public void closeFilechannel() throws IOException {
         synchronized (this) {
             if (closing) return;
             closing = true;
         }
-        Set<String> keySet = fileChannelMap.keySet();
-        Iterator<Map.Entry<String, FileChannel>> iterator = fileChannelMap.entrySet().iterator();
+        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){
+            iterator.next().getValue().force();
             iterator.next().getValue().close();
         }
         fileChannelMap.clear();
+    }
+
+    public void force() throws IOException {
+        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
+        while(iterator.hasNext()){
+            iterator.next().getValue().force();
+        }
     }
 }
 
