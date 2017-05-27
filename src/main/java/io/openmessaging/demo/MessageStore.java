@@ -83,7 +83,7 @@ public class MessageStore {
         buf.rewind();
         fileChannel.write(buf);
 
-        if (atomicInteger.incrementAndGet() > 8) {
+        if (atomicInteger.incrementAndGet() > 10000) {
             fileChannel.force(false);
             atomicInteger.set(0);
         }

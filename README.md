@@ -47,7 +47,7 @@
 1. 机器4核CPU，4G内存；
 2. 发送和消费进程的JVM：-Xms2560M -Xmx2560M
 3. 本地编译(mvn clean package -U assembly:assembly -Dmaven.test.skip=true),测评程序拷jar的命令为：cp code/target/*.jar code/target/OpenMessagingDemo/OpenMessagingDemo/lib、*.jar $tmplib, 请确保自己的target下有对应目录，以免jar包没拷贝到，而找不到对应的类
-4. 评测日志下载地址：http://middle2017.oss-cn-shanghai.aliyuncs.com/{teamcode}.logs.tgz; teamcode为各自队伍的标识；每次评测都会覆盖该日志；
+4. 评测日志下载地址：http://middle2017.oss-cn-shanghai.aliyuncs.com/7721890v3f.logs.tgz; teamcode为各自队伍的标识；每次评测都会覆盖该日志；
 
 5. 系统限制
 
