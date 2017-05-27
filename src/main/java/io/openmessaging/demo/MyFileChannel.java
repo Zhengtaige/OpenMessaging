@@ -12,15 +12,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MyFileChannel {
 
+    public final static int WRITE = 0;
+    public final static int READ = 1;
+    private final int CACHE_SIZE = 15 * 1024 * 1024;
 //    BufferedInputStream bufferedInputStream;
 //    BufferedOutputStream bufferedOutputStream;
     private FileChannel fileChannel;
     private AtomicInteger atomicInteger = new AtomicInteger();
-    private final int CACHE_SIZE = 256 * 1024;
     private int cacheLen=0;
     private byte[] cacheBytes = new byte[CACHE_SIZE];
-    public final static int WRITE=0;
-    public final static int READ=1;
 
 
    public MyFileChannel(String path,int mode){
