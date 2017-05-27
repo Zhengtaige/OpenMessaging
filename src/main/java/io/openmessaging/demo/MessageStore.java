@@ -5,14 +5,30 @@ import io.openmessaging.Message;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
+    private static String path;
+    private boolean closing = false;
 
     public static MessageStore getInstance() {
         return INSTANCE;
+    }
+
+    public static void setPath(String path) {
+        synchronized (MessageStore.class){
+            if (MessageStore.path != null) return;
+        }
+        MessageStore.path = path;
+        try {
+            Files.createDirectories(Paths.get(path));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private Map<String, ArrayList<Message>> messageBuckets = new HashMap<>();
@@ -26,7 +42,7 @@ public class MessageStore {
         if(!fileChannelMap.containsKey(bucket)){
             FileOutputStream fi=null;
             try {
-                fi = new FileOutputStream(new File(bucket+".ms"));
+                fi = new FileOutputStream(new File(path+"\\"+bucket+".ms"));
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -63,7 +79,7 @@ public class MessageStore {
        if(!fileChannelMap.containsKey(bucket)){
            FileInputStream fi=null;
            try {
-               fi = new FileInputStream(new File(bucket+".ms"));
+               fi = new FileInputStream(new File(path+"\\"+bucket+".ms"));
 
            } catch (FileNotFoundException e) {
                e.printStackTrace();
@@ -123,7 +139,11 @@ public class MessageStore {
         return value;
     }
 
-    public static void closeFilechannel() throws IOException {
+    public void closeFilechannel() throws IOException {
+        synchronized (this) {
+            if (closing) return;
+            closing = true;
+        }
         Set<String> keySet = fileChannelMap.keySet();
         Iterator<Map.Entry<String, FileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){

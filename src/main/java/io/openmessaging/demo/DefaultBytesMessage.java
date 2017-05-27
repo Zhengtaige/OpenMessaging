@@ -102,4 +102,9 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
 //        return ret;
 //    }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        return true;
+    }
 }

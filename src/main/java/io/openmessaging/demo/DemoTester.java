@@ -57,7 +57,7 @@ public class DemoTester {
         System.out.println(T1);
         //请保证数据写入磁盘中
         try {
-            MessageStore.closeFilechannel();
+            MessageStore.getInstance().closeFilechannel();
         } catch (IOException e) {
             e.printStackTrace();
         }
