@@ -58,6 +58,7 @@ public class MessageStore {
         buf.put(byteMerger(infosizetag,serializeBytes));
         buf.rewind();
         fileChannel.write(buf);
+        fileChannel.force(false);
     }
 
    public synchronized Message pullMessage(String queue, String bucket) throws IOException {

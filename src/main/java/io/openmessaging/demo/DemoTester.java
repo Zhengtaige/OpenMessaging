@@ -31,11 +31,11 @@ public class DemoTester {
         String topic2 = "TOPIC2"; //实际测试时大概会有100个Topic左右
         String queue1 = "QUEUE1"; //实际测试时，queue数目与消费线程数目相同
         String queue2 = "QUEUE2"; //实际测试时，queue数目与消费线程数目相同
-        List<Message> messagesForTopic1 = new ArrayList<>(1024);
-        List<Message> messagesForTopic2 = new ArrayList<>(1024);
-        List<Message> messagesForQueue1 = new ArrayList<>(1024);
-        List<Message> messagesForQueue2 = new ArrayList<>(1024);
-        for (int i = 0; i < 1024; i++) {
+        List<Message> messagesForTopic1 = new ArrayList<>(1024*1024);
+        List<Message> messagesForTopic2 = new ArrayList<>(1024*1024);
+        List<Message> messagesForQueue1 = new ArrayList<>(1024*1024);
+        List<Message> messagesForQueue2 = new ArrayList<>(1024*2014);
+        for (int i = 0; i < 1024*1024; i++) {
             //注意实际比赛可能还会向消息的headers或者properties里面填充其它内容
             messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  (topic1 + i).getBytes()));
             messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  (topic2 + i).getBytes()));
@@ -45,7 +45,7 @@ public class DemoTester {
 
         long start = System.currentTimeMillis();
         //发送, 实际测试时，会用多线程来发送, 每个线程发送自己的Topic和Queue
-        for (int i = 0; i < 1024; i++) {
+        for (int i = 0; i < 1024*1024; i++) {
             producer.send(messagesForTopic1.get(i));
             producer.send(messagesForTopic2.get(i));
             producer.send(messagesForQueue1.get(i));
@@ -54,7 +54,6 @@ public class DemoTester {
         long end = System.currentTimeMillis();
 
         long T1 = end - start;
-        System.out.println(T1);
         //请保证数据写入磁盘中
         try {
             MessageStore.getInstance().closeFilechannel();
