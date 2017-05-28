@@ -3,10 +3,14 @@ package io.openmessaging.demo;
 /**
  * Created by Then on 2017/5/24.
  */
+import io.openmessaging.Message;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SerializeUtil {
     /**
@@ -15,17 +19,26 @@ public class SerializeUtil {
      * @param object
      * @return
      */
-    public static byte[] serialize(Object object) {
+    public static byte[] serialize(DefaultBytesMessage message) {
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
         try {
             // 序列化
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
-            oos.writeObject(object);
-            oos.close();
-            baos.close();
-            byte[] bytes = baos.toByteArray();
+//            baos = new ByteArrayOutputStream();
+//            oos = new ObjectOutputStream(baos);
+//            oos.writeObject(object);
+//            oos.close();
+//            baos.close();
+//            byte[] bytes = baos.toByteArray();
+//            return bytes;
+            String headers = "";
+            Set<String> set = message.headers().keySet();
+            for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
+                String s = it.next();
+                headers = message.headers().getString(s);
+            }
+            byte[] headerByte = headers.getBytes();
+            byte[] bytes = byteMerger(headerByte, message.getBody());
             return bytes;
         } catch (Exception e) {
             e.printStackTrace();
