@@ -2,12 +2,12 @@ package io.openmessaging.demo;
 
 import io.openmessaging.Message;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
@@ -82,8 +82,9 @@ public class MessageStore {
         }
         Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){
-            iterator.next().getValue().force();
-            iterator.next().getValue().close();
+            Map.Entry<String, MyFileChannel> entry = iterator.next();
+            entry.getValue().force();
+            entry.getValue().close();
         }
         fileChannelMap.clear();
     }

@@ -14,7 +14,7 @@ public class MyFileChannel {
 
     public final static int WRITE = 0;
     public final static int READ = 1;
-    private final int CACHE_SIZE = 256 * 1024;
+    private final int CACHE_SIZE = 512 * 1024;
     //    BufferedInputStream bufferedInputStream;
 //    BufferedOutputStream bufferedOutputStream;
     private FileChannel fileChannel;
