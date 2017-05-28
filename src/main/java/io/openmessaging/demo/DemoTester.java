@@ -1,16 +1,11 @@
 package io.openmessaging.demo;
 
-import io.openmessaging.KeyValue;
-import io.openmessaging.Message;
-import io.openmessaging.MessageHeader;
-import io.openmessaging.Producer;
-import io.openmessaging.PullConsumer;
+import io.openmessaging.*;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
 
 public class DemoTester {
 
@@ -35,16 +30,14 @@ public class DemoTester {
         List<Message> messagesForTopic2 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue1 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue2 = new ArrayList<>(messageNum);
+        String s = "test";
         for (int i = 0; i < messageNum; i++) {
             //注意实际比赛可能还会向消息的headers或者properties里面填充其它内容
-//            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  (topic1 + i).getBytes()));
-//            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  (topic2 + i).getBytes()));
-//            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, (queue1 + i).getBytes()));
-//            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, (queue2 + i).getBytes()));
-            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  "test".getBytes()));
-            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  "test".getBytes()));
-            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, "test".getBytes()));
-            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, "test".getBytes()));
+
+            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1, s.getBytes()));
+            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2, s.getBytes()));
+            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, s.getBytes()));
+            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, s.getBytes()));
         }
 
         long start = System.currentTimeMillis();
@@ -61,7 +54,7 @@ public class DemoTester {
         System.out.println("sendcost:"+T1);
         //请保证数据写入磁盘中
         try {
-            MessageStore.getInstance().closeStream();
+            MessageStore.getInstance().closeFilechannel();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -105,10 +98,9 @@ public class DemoTester {
             List<String> topics = new ArrayList<>();
             topics.add(topic1);
             topics.add(topic2);
-            topics.add(queue2);
-            consumer2.attachQueue(queue1, topics);
+            consumer2.attachQueue(queue2, topics);
 
-            int queue2Offset = 0, queue1Offset = 0, topic1Offset = 0, topic2Offset = 0;
+            int queue2Offset = 0, topic1Offset = 0, topic2Offset = 0;
 
             long startConsumer = System.currentTimeMillis();
             while (true) {
@@ -130,13 +122,8 @@ public class DemoTester {
                         Assert.assertEquals(messagesForTopic2.get(topic2Offset++), message);
                     }
                 } else {
-                    if(queue.equals(queue1)){
-                        Assert.assertEquals(queue1, queue);
-                        Assert.assertEquals(messagesForQueue2.get(queue1Offset++), message);
-                    }else{
-                        queue2Offset++;
-                    }
-
+                    Assert.assertEquals(queue2, queue);
+                    Assert.assertEquals(messagesForQueue2.get(queue2Offset++), message);
                 }
             }
             long endConsumer = System.currentTimeMillis();
