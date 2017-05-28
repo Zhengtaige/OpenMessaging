@@ -91,7 +91,7 @@ public class DefaultProducer  implements Producer {
 
     @Override public void flush() {
         try {
-            messageStore.closeFilechannel();
+            messageStore.closeStream();
         } catch (IOException e) {
             e.printStackTrace();
         }
