@@ -118,7 +118,16 @@ public class MyFileChannel {
 //       ByteBuffer buf = ByteBuffer.allocate(cacheLen);
 //       buf.put(cacheBytes,0,cacheLen);
         buf.rewind();
-        fileChannel.write(buf);
+        byte[] t = new byte[cacheLen];
+        buf.get(t, 0, cacheLen);
+
+        ByteBuffer temp = ByteBuffer.allocate(cacheLen).put(t);
+        temp.rewind();
+        while (temp.hasRemaining()) {
+            fileChannel.write(temp);
+        }
+//        buf.rewind();
+//        fileChannel.write(buf);
         fileChannel.force(false);
     }
 }
