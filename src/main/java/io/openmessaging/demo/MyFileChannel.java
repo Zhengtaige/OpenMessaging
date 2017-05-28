@@ -45,12 +45,11 @@ public class MyFileChannel {
    }
 
    public int write(Message message) throws IOException {
-
-           int ret = -1;
-           byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
-           int messagelength=serializeBytes.length;
-           byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
-           byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
+       int ret = -1;
+       byte[] serializeBytes=SerializeUtil.serialize(message);
+       int messagelength=serializeBytes.length;
+       byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
+       byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
        synchronized (this){
            if(tmpbytes.length+cacheLen>CACHE_SIZE){
                ByteBuffer buf = ByteBuffer.allocate(cacheLen);
@@ -84,8 +83,8 @@ public class MyFileChannel {
        bytes = new byte[mesagelen];
        byteBuffer.rewind();
        byteBuffer.get(bytes);
-       DefaultBytesMessage defaultBytesMessage = (DefaultBytesMessage) SerializeUtil.unserialize(bytes);
-       return defaultBytesMessage;
+       Message message = (DefaultBytesMessage) SerializeUtil.unserialize(bytes);
+       return message;
    }
 
    public void close() throws IOException {

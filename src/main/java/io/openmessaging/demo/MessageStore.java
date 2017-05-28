@@ -34,7 +34,7 @@ public class MessageStore {
     }
 
     public   void putMessage(String bucket, Message message) throws IOException {
-        MyFileChannel myfileChannel=null;
+        MyFileChannel myfileChannel;
         synchronized (this) {
             if (!fileChannelMap.containsKey(bucket)) {
                 myfileChannel = new MyFileChannel(path + "\\" + bucket, MyFileChannel.WRITE);
