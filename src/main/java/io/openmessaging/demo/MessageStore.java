@@ -16,7 +16,6 @@ public class MessageStore {
     private static String path;
     private static Map<String, MyFileChannel> fileChannelMap = new HashMap<>();
     private boolean closing = false;
-    private AtomicInteger atomicInteger = new AtomicInteger();
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -33,8 +32,6 @@ public class MessageStore {
             e.printStackTrace();
         }
     }
-
-
 
     public   void putMessage(String bucket, Message message) throws IOException {
         MyFileChannel myfileChannel=null;
@@ -84,8 +81,9 @@ public class MessageStore {
         }
         Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){
-            iterator.next().getValue().force();
-            iterator.next().getValue().close();
+            MyFileChannel myFileChannel = iterator.next().getValue();
+            myFileChannel.force();
+            myFileChannel.close();
         }
         fileChannelMap.clear();
     }

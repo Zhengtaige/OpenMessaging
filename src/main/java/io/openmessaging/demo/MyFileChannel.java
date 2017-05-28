@@ -12,10 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MyFileChannel {
 
-//    BufferedInputStream bufferedInputStream;
-//    BufferedOutputStream bufferedOutputStream;
     private FileChannel fileChannel;
-    private AtomicInteger atomicInteger = new AtomicInteger();
     private final int CACHE_SIZE = 256 * 1024;
     private int cacheLen=0;
     private byte[] cacheBytes = new byte[CACHE_SIZE];
@@ -34,7 +31,6 @@ public class MyFileChannel {
                e.printStackTrace();
            }
            fileChannel = fi.getChannel();
-//           bufferedOutputStream = new BufferedOutputStream(fi);
        }else{
            FileInputStream fi=null;
            try {
@@ -44,37 +40,32 @@ public class MyFileChannel {
                e.printStackTrace();
            }
            fileChannel = fi.getChannel();
-//           bufferedInputStream = new BufferedInputStream(fi);
        }
 
    }
 
    public int write(Message message) throws IOException {
-       synchronized (this){
+
            int ret = -1;
            byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
            int messagelength=serializeBytes.length;
            byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
            byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
-//       System.out.println(cacheLen);
+       synchronized (this){
            if(tmpbytes.length+cacheLen>CACHE_SIZE){
                ByteBuffer buf = ByteBuffer.allocate(cacheLen);
                buf.put(cacheBytes,0,cacheLen);
                buf.rewind();
                ret = fileChannel.write(buf);
-
-//           bufferedOutputStream.write(cacheBytes,0,cacheLen);
                System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
                cacheLen = tmpbytes.length;
-
            }else {
                System.arraycopy(tmpbytes,0,cacheBytes,cacheLen,tmpbytes.length);
                cacheLen += tmpbytes.length;
                ret = 0;
            }
-           return ret;
        }
-
+       return ret;
    }
 
    public Message read() throws IOException {
@@ -99,7 +90,6 @@ public class MyFileChannel {
 
    public void close() throws IOException {
        fileChannel.close();
-//       bufferedOutputStream.close();
    }
 
    public void force() throws IOException {
