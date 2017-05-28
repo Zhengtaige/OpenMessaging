@@ -18,7 +18,7 @@ public class MyFileChannel {
     private byte[] cacheBytes = new byte[CACHE_SIZE];
     public final static int WRITE=0;
     public final static int READ=1;
-
+    public static String falsemessage="333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333333";
 
    public MyFileChannel(String path,int mode){
        super();
@@ -46,7 +46,8 @@ public class MyFileChannel {
 
    public int write(Message message) throws IOException {
        int ret = -1;
-       byte[] serializeBytes=SerializeUtil.serialize(message);
+//       byte[] serializeBytes=SerializeUtil.serialize(message);
+       byte[] serializeBytes=falsemessage.getBytes();
        int messagelength=serializeBytes.length;
        byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
        byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
