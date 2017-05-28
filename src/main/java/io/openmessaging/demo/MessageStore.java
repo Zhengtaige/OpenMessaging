@@ -36,13 +36,15 @@ public class MessageStore {
 
 
 
-    public  synchronized void putMessage(String bucket, Message message) throws IOException {
+    public   void putMessage(String bucket, Message message) throws IOException {
         MyStream myStream=null;
-        if(!streamMap.containsKey(bucket)){
-            myStream= new MyStream(path+"\\"+bucket+".ms",MyStream.WRITE);
-            streamMap.put(bucket,myStream);
-        }else{
-            myStream = streamMap.get(bucket);
+        synchronized (this){
+            if(!streamMap.containsKey(bucket)){
+                myStream= new MyStream(path+"\\"+bucket+".ms",MyStream.WRITE);
+                streamMap.put(bucket,myStream);
+            }else{
+                myStream = streamMap.get(bucket);
+            }
         }
         myStream.write(message);
     }
