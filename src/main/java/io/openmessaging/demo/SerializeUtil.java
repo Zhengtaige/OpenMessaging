@@ -12,20 +12,30 @@ public class SerializeUtil {
     /**
      * 序列化
      *
-     * @param object
+     * @param message
      * @return
      */
-    public static byte[] serialize(Object object) {
+    public static byte[] serialize(DefaultBytesMessage message) {
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
         try {
             // 序列化
             baos = new ByteArrayOutputStream();
             oos = new ObjectOutputStream(baos);
-            oos.writeObject(object);
+            oos.writeObject(message.headers());
+            byte[] headers = baos.toByteArray();
+            baos.reset();
+            oos.reset();
+            oos.writeObject(message.properties());
+            byte[] properties = baos.toByteArray();
+            byte[] headerLength = byteMerger(intToByteArray(headers.length), intToByteArray(properties.length));
+            byte[] body = message.getBody();
+            byte[] length = byteMerger(intToByteArray(body.length + headers.length + properties.length), headerLength);
+            byte[] bytes = byteMerger(length, headers);
+            bytes = byteMerger(bytes, properties);
+            bytes = byteMerger(bytes, body);
             oos.close();
             baos.close();
-            byte[] bytes = baos.toByteArray();
             return bytes;
         } catch (Exception e) {
             e.printStackTrace();
