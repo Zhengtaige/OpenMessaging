@@ -1,17 +1,58 @@
 package io.openmessaging.demo;
 
+import io.openmessaging.KeyValue;
+import io.openmessaging.Producer;
+
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by autulin on 2017/5/12.
  */
 public class TestMain {
     public static void main(String[] args) throws IOException {
+        DefaultBytesMessage message = new DefaultBytesMessage("test".getBytes());
+        message.putHeaders("queue", "quueueue");
+        message.putHeaders("tttt", 1);
+        message.putHeaders("double", 123.123);
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Set<String> set = message.headers().keySet();
+        for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
+            String s = it.next();
+            stringBuilder.append(s);
+            stringBuilder.append('=');
+            stringBuilder.append(message.headers().getString(s));
+            stringBuilder.append('\n');
+        }
+        byte[] header = stringBuilder.toString().getBytes();
+        int headerLength = header.length;
+        byte[] bytes = byteMerger(header, message.getBody());
+        int total = bytes.length;
+
+
+        DefaultBytesMessage message1 = new DefaultBytesMessage(message.getBody());
+        String headers = new String(header);
+        for (String s : headers.split("\n")){
+            String[] t = s.split("=");
+            System.out.println(t[0]+"="+t[1]);
+
+        }
+
+        String s = "123";
+        System.out.println((s instanceof String ));
+        System.out.println((Object)s instanceof String);
+
+
+
 
     }
 

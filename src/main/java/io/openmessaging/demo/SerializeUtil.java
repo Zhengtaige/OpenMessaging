@@ -3,10 +3,15 @@ package io.openmessaging.demo;
 /**
  * Created by Then on 2017/5/24.
  */
+
+import io.openmessaging.MessageHeader;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Iterator;
+import java.util.Set;
 
 public class SerializeUtil {
     /**
@@ -18,29 +23,37 @@ public class SerializeUtil {
     public static byte[] serialize(DefaultBytesMessage message) {
         ObjectOutputStream oos = null;
         ByteArrayOutputStream baos = null;
-        try {
-            // 序列化
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
-            oos.writeObject(message.headers());
-            byte[] headers = baos.toByteArray();
-            baos.reset();
-            oos.reset();
-            oos.writeObject(message.properties());
-            byte[] properties = baos.toByteArray();
-            byte[] headerLength = byteMerger(intToByteArray(headers.length), intToByteArray(properties.length));
-            byte[] body = message.getBody();
-            byte[] length = byteMerger(intToByteArray(body.length + headers.length + properties.length), headerLength);
-            byte[] bytes = byteMerger(length, headers);
-            bytes = byteMerger(bytes, properties);
-            bytes = byteMerger(bytes, body);
-            oos.close();
-            baos.close();
-            return bytes;
-        } catch (Exception e) {
-            e.printStackTrace();
+//        try {
+        // 序列化
+//            baos = new ByteArrayOutputStream();
+//            oos = new ObjectOutputStream(baos);
+//            oos.writeObject(message.headers());
+//            byte[] headers = baos.toByteArray();
+//            baos.reset();
+//            oos.reset();
+//            oos.writeObject(message.properties());
+//            byte[] properties = baos.toByteArray();
+//            byte[] headerLength = byteMerger(intToByteArray(headers.length), intToByteArray(properties.length));
+//            byte[] body = message.getBody();
+//            byte[] length = byteMerger(intToByteArray(body.length + headers.length + properties.length), headerLength);
+//            byte[] bytes = byteMerger(length, headers);
+//            bytes = byteMerger(bytes, properties);
+//            bytes = byteMerger(bytes, body);
+//            oos.close();
+//            baos.close();
+        String headers = "";
+        Set<String> set = message.headers().keySet();
+        for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
+            String s = it.next();
+            headers = message.headers().getString(s);
         }
-        return null;
+        byte[] headerByte = headers.getBytes();
+        byte[] bytes = byteMerger(headerByte, message.getBody());
+        return bytes;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
     }
 
     /**
@@ -49,6 +62,7 @@ public class SerializeUtil {
      * @param bytes
      * @return
      */
+
     public static Object unserialize(byte[] bytes) {
         ByteArrayInputStream bais = null;
         try {
@@ -97,8 +111,8 @@ public class SerializeUtil {
         return value;
     }
 
-    public static  byte[] byteMerger(byte[] byte_1, byte[] byte_2){
-        byte[] byte_3 = new byte[byte_1.length+byte_2.length];
+    public static byte[] byteMerger(byte[] byte_1, byte[] byte_2) {
+        byte[] byte_3 = new byte[byte_1.length + byte_2.length];
         System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
         System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
         return byte_3;
