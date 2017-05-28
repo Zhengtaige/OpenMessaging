@@ -36,13 +36,15 @@ public class MessageStore {
 
 
 
-    public  synchronized void putMessage(String bucket, Message message) throws IOException {
+    public   void putMessage(String bucket, Message message) throws IOException {
         MyFileChannel myfileChannel=null;
-        if(!fileChannelMap.containsKey(bucket)){
-            myfileChannel= new MyFileChannel(path+"\\"+bucket,MyFileChannel.WRITE);
-            fileChannelMap.put(bucket,myfileChannel);
-        }else{
-            myfileChannel = fileChannelMap.get(bucket);
+        synchronized (this) {
+            if (!fileChannelMap.containsKey(bucket)) {
+                myfileChannel = new MyFileChannel(path + "\\" + bucket, MyFileChannel.WRITE);
+                fileChannelMap.put(bucket, myfileChannel);
+            } else {
+                myfileChannel = fileChannelMap.get(bucket);
+            }
         }
         myfileChannel.write(message);
     }

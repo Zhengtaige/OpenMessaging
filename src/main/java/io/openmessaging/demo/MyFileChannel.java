@@ -50,32 +50,31 @@ public class MyFileChannel {
    }
 
    public int write(Message message) throws IOException {
-       int ret = -1;
-       byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
-       int messagelength=serializeBytes.length;
-       byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
-       byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
+       synchronized (this){
+           int ret = -1;
+           byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
+           int messagelength=serializeBytes.length;
+           byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
+           byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
 //       System.out.println(cacheLen);
-       if(tmpbytes.length+cacheLen>CACHE_SIZE){
-           ByteBuffer buf = ByteBuffer.allocate(cacheLen);
-           buf.put(cacheBytes,0,cacheLen);
-           buf.rewind();
-           ret = fileChannel.write(buf);
+           if(tmpbytes.length+cacheLen>CACHE_SIZE){
+               ByteBuffer buf = ByteBuffer.allocate(cacheLen);
+               buf.put(cacheBytes,0,cacheLen);
+               buf.rewind();
+               ret = fileChannel.write(buf);
 
 //           bufferedOutputStream.write(cacheBytes,0,cacheLen);
-           System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
-           cacheLen = tmpbytes.length;
+               System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
+               cacheLen = tmpbytes.length;
 
-       }else if(cacheLen>0){
-           System.arraycopy(tmpbytes,0,cacheBytes,cacheLen,tmpbytes.length);
-           cacheLen += tmpbytes.length;
-           ret = 0;
-       }else if(cacheLen==0){
-           System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
-           cacheLen = tmpbytes.length;
-           ret = 0;
+           }else {
+               System.arraycopy(tmpbytes,0,cacheBytes,cacheLen,tmpbytes.length);
+               cacheLen += tmpbytes.length;
+               ret = 0;
+           }
+           return ret;
        }
-       return ret;
+
    }
 
    public Message read() throws IOException {
