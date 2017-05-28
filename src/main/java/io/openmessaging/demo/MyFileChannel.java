@@ -60,7 +60,14 @@ public class MyFileChannel {
         if (tmpbytes.length + cacheLen > CACHE_SIZE) {
 //           buf.put(cacheBytes,0,cacheLen);
             buf.rewind();
-            ret = fileChannel.write(buf);
+            byte[] t = new byte[cacheLen];
+            buf.get(t, 0, cacheLen);
+            ByteBuffer temp = ByteBuffer.allocate(cacheLen).put(t);
+            while (temp.hasRemaining()) {
+                ret = fileChannel.write(temp);
+            }
+
+            if (ret != 337) System.out.println("write" + ret);
 
 //           bufferedOutputStream.write(cacheBytes,0,cacheLen);
 //           System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);

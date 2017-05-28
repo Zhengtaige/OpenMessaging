@@ -1,16 +1,11 @@
 package io.openmessaging.demo;
 
-import io.openmessaging.KeyValue;
-import io.openmessaging.Message;
-import io.openmessaging.MessageHeader;
-import io.openmessaging.Producer;
-import io.openmessaging.PullConsumer;
+import io.openmessaging.*;
+import org.junit.Assert;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import org.junit.Assert;
 
 public class DemoTester {
 
@@ -35,12 +30,14 @@ public class DemoTester {
         List<Message> messagesForTopic2 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue1 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue2 = new ArrayList<>(messageNum);
+        String s = "test";
         for (int i = 0; i < messageNum; i++) {
             //注意实际比赛可能还会向消息的headers或者properties里面填充其它内容
-            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  (topic1 + i).getBytes()));
-            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  (topic2 + i).getBytes()));
-            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, (queue1 + i).getBytes()));
-            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, (queue2 + i).getBytes()));
+
+            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1, s.getBytes()));
+            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2, s.getBytes()));
+            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, s.getBytes()));
+            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, s.getBytes()));
         }
 
         long start = System.currentTimeMillis();
