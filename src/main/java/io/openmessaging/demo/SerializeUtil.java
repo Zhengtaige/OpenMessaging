@@ -45,6 +45,12 @@ public class SerializeUtil {
             ObjectInputStream ois = new ObjectInputStream(bais);
             return ois.readObject();
         } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+//            for (byte b : bytes) {
+//                sb.append(b);
+//                sb.append(",");
+//            }
+            System.out.println(sb.append(bytes.length).toString());
             e.printStackTrace();
         }
         return null;

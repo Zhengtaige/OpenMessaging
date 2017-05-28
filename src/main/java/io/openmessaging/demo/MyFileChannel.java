@@ -92,6 +92,9 @@ public class MyFileChannel {
         byte[] bytes = new byte[4];
         byteBuffer.get(bytes);
         int mesagelen = SerializeUtil.byteArrayToInt(bytes);
+        if (mesagelen > 336) {
+            System.out.println(mesagelen);
+        }
         //根据message长度读取message信息
         byteBuffer = ByteBuffer.allocate(mesagelen);
         fileChannel.read(byteBuffer);
