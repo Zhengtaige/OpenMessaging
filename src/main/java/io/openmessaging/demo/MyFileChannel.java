@@ -62,12 +62,14 @@ public class MyFileChannel {
             buf.rewind();
             byte[] t = new byte[cacheLen];
             buf.get(t, 0, cacheLen);
+
             ByteBuffer temp = ByteBuffer.allocate(cacheLen).put(t);
+            temp.rewind();
             while (temp.hasRemaining()) {
                 ret = fileChannel.write(temp);
             }
 
-            if (ret != 337) System.out.println("write" + ret);
+//            if (ret != 337) System.out.println("write" + ret);
 
 //           bufferedOutputStream.write(cacheBytes,0,cacheLen);
 //           System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
@@ -75,15 +77,10 @@ public class MyFileChannel {
             buf.put(tmpbytes, 0, tmpbytes.length);
             cacheLen = tmpbytes.length;
 
-        } else if (cacheLen > 0) {
+        } else {
 //           System.arraycopy(tmpbytes,0,cacheBytes,cacheLen,tmpbytes.length);
             buf.put(tmpbytes, 0, tmpbytes.length);
             cacheLen += tmpbytes.length;
-            ret = 0;
-        } else if (cacheLen == 0) {
-//           System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
-            buf.put(tmpbytes, 0, tmpbytes.length);
-            cacheLen = tmpbytes.length;
             ret = 0;
         }
         return ret;
@@ -99,8 +96,8 @@ public class MyFileChannel {
         byte[] bytes = new byte[4];
         byteBuffer.get(bytes);
         int mesagelen = SerializeUtil.byteArrayToInt(bytes);
-        if (mesagelen > 336) {
-            System.out.println(mesagelen);
+        if (mesagelen != 333) {
+            System.out.println("read" + mesagelen);
         }
         //根据message长度读取message信息
         byteBuffer = ByteBuffer.allocate(mesagelen);
