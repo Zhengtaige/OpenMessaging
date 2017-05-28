@@ -2,19 +2,19 @@ package io.openmessaging.demo;
 
 import io.openmessaging.Message;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
     private static String path;
-    private static Map<String, MyStream> streamMap = new HashMap<>();
+    private static Map<String, MyFileChannel> fileChannelMap = new HashMap<>();
     private boolean closing = false;
     private AtomicInteger atomicInteger = new AtomicInteger();
 
@@ -36,17 +36,15 @@ public class MessageStore {
 
 
 
-    public   void putMessage(String bucket, Message message) throws IOException {
-        MyStream myStream=null;
-        synchronized (this){
-            if(!streamMap.containsKey(bucket)){
-                myStream= new MyStream(path+"\\"+bucket+".ms",MyStream.WRITE);
-                streamMap.put(bucket,myStream);
-            }else{
-                myStream = streamMap.get(bucket);
-            }
+    public  synchronized void putMessage(String bucket, Message message) throws IOException {
+        MyFileChannel myfileChannel=null;
+        if(!fileChannelMap.containsKey(bucket)){
+            myfileChannel= new MyFileChannel(path+"\\"+bucket,MyFileChannel.WRITE);
+            fileChannelMap.put(bucket,myfileChannel);
+        }else{
+            myfileChannel = fileChannelMap.get(bucket);
         }
-        myStream.write(message);
+        myfileChannel.write(message);
     }
 
    public synchronized Message pullMessage(String queue, String bucket) throws IOException {
@@ -65,30 +63,37 @@ public class MessageStore {
 //        }
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
-       MyStream myStream=null;
-       if(!streamMap.containsKey(bucket)){
-           myStream= new MyStream(path+"\\"+bucket+".ms", MyStream.READ);
-           streamMap.put(bucket,myStream);
+       MyFileChannel myfileChannel=null;
+       if(!fileChannelMap.containsKey(bucket)){
+           myfileChannel= new MyFileChannel(path+"\\"+bucket, MyFileChannel.READ);
+           fileChannelMap.put(bucket,myfileChannel);
        }else{
-           myStream = streamMap.get(bucket);
+           myfileChannel = fileChannelMap.get(bucket);
        }
-       return myStream.read();
+       return myfileChannel.read();
    }
 
 
 
-    public void closeStream() throws IOException {
+    public void closeFilechannel() throws IOException {
         synchronized (this) {
             if (closing) return;
             closing = true;
         }
-        Iterator<Map.Entry<String, MyStream>> iterator = streamMap.entrySet().iterator();
+        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
         while(iterator.hasNext()){
-            MyStream mystream = iterator.next().getValue();
-            mystream.writeCache();
-            mystream.close();
+            Map.Entry<String, MyFileChannel> entry = iterator.next();
+            entry.getValue().force();
+            entry.getValue().close();
         }
-        streamMap.clear();
+        fileChannelMap.clear();
+    }
+
+    public void force() throws IOException {
+        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
+        while(iterator.hasNext()){
+            iterator.next().getValue().force();
+        }
     }
 }
 

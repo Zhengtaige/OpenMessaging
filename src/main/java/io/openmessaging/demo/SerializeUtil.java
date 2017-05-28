@@ -50,6 +50,12 @@ public class SerializeUtil {
             bais.close();
             return object;
         } catch (Exception e) {
+            StringBuilder sb = new StringBuilder();
+//            for (byte b : bytes) {
+//                sb.append(b);
+//                sb.append(",");
+//            }
+            System.out.println(sb.append(bytes.length).toString());
             e.printStackTrace();
         }
         return null;
