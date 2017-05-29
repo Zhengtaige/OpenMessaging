@@ -3,7 +3,6 @@ package io.openmessaging.demo;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 import io.openmessaging.PullConsumer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;

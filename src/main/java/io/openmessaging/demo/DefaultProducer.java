@@ -8,7 +8,6 @@ import io.openmessaging.MessageFactory;
 import io.openmessaging.MessageHeader;
 import io.openmessaging.Producer;
 import io.openmessaging.Promise;
-
 import java.io.IOException;
 
 public class DefaultProducer  implements Producer {

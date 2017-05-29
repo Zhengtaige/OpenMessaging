@@ -25,7 +25,6 @@ public class MyStream {
     }
 
     public void write(Message message) throws IOException {
-
             byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
             int messagelength=serializeBytes.length;
             byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
