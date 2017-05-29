@@ -52,7 +52,7 @@ public class MyStream {
         DefaultBytesMessage defaultBytesMessage = (DefaultBytesMessage) SerializeUtil.unserialize(bytes);
         return defaultBytesMessage;
     }
-    public void writeCache() throws IOException {
+    public  void writeCache() throws IOException {
         bufferedOutputStream.write(cacheBytes,0,cacheLen);
     }
     public void close() throws IOException {

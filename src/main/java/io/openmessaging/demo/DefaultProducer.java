@@ -18,9 +18,14 @@ public class DefaultProducer  implements Producer {
 
     private MessageStore messageStore = MessageStore.getInstance();
 
+    public static int produceNum=0;
+
     public DefaultProducer(KeyValue properties) {
         this.properties = properties;
         messageStore.setPath(properties.getString("STORE_PATH"));
+        synchronized (Producer.class){
+            produceNum++;
+        }
     }
 
 
@@ -88,10 +93,15 @@ public class DefaultProducer  implements Producer {
     }
 
     @Override public void flush() {
-        try {
-            messageStore.closeStream();
-        } catch (IOException e) {
-            e.printStackTrace();
+        synchronized (Producer.class){
+            produceNum--;
+            if(produceNum==0){
+                try {
+                    messageStore.closeStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }

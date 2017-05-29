@@ -12,7 +12,6 @@ public class MessageStore {
     private static final MessageStore INSTANCE = new MessageStore();
     private String path;
     private static Map<String, MyStream> streamMap = new HashMap<>();
-    private boolean closing = false;
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -73,10 +72,6 @@ public class MessageStore {
 
 
     public void closeStream() throws IOException {
-        synchronized (this) {
-            if (closing) return;
-            closing = true;
-        }
         Iterator<Map.Entry<String, MyStream>> iterator = streamMap.entrySet().iterator();
         while(iterator.hasNext()){
             MyStream mystream = iterator.next().getValue();
