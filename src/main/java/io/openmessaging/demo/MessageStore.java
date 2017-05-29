@@ -6,6 +6,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
 
@@ -16,6 +17,8 @@ public class MessageStore {
     public static MessageStore getInstance() {
         return INSTANCE;
     }
+
+    public AtomicInteger num = new AtomicInteger();
 
     public void setPath(String path) {
         synchronized (MessageStore.class){
@@ -41,6 +44,7 @@ public class MessageStore {
             }
         }
         myStream.write(message);
+        num.getAndIncrement();
     }
 
    public synchronized Message pullMessage(String queue, String bucket) throws IOException {
@@ -79,6 +83,7 @@ public class MessageStore {
             mystream.close();
         }
         streamMap.clear();
+        System.out.println("writed:"+num.get());
     }
 }
 
