@@ -30,9 +30,6 @@ public class MessageStore {
         }
     }
 
-    public  String getPath() {
-        return path;
-    }
 
     public   void putMessage(String bucket, Message message) throws IOException {
         MyStream myStream;

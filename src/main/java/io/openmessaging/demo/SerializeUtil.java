@@ -4,14 +4,6 @@ package io.openmessaging.demo;
  * Created by Then on 2017/5/24.
  */
 import io.openmessaging.KeyValue;
-import io.openmessaging.Message;
-import io.openmessaging.MessageHeader;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Iterator;
 import java.util.Set;
 
 public class SerializeUtil {

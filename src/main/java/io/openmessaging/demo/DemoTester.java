@@ -41,10 +41,10 @@ public class DemoTester {
 //            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  (topic2 + i).getBytes()));
 //            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, (queue1 + i).getBytes()));
 //            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, (queue2 + i).getBytes()));
-            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  "test".getBytes()));
-            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2,  "test".getBytes()));
-            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, "test".getBytes()));
-            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, "test".getBytes()));
+            messagesForTopic1.add(producer.createBytesMessageToTopic(topic1, (topic1+i).getBytes()));
+            messagesForTopic2.add(producer.createBytesMessageToTopic(topic2, (topic2+i).getBytes()));
+            messagesForQueue1.add(producer.createBytesMessageToQueue(queue1, (queue1+i).getBytes()));
+            messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, (queue2+i).getBytes()));
         }
 
         long start = System.currentTimeMillis();
