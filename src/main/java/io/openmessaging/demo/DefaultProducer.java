@@ -14,7 +14,6 @@ public class DefaultProducer  implements Producer {
 
     private MessageFactory messageFactory = new DefaultMessageFactory();
 
-
     private KeyValue properties;
 
     private MessageStore messageStore = MessageStore.getInstance();

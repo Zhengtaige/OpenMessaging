@@ -76,7 +76,6 @@ public class SerializeUtil {
         String []header=message[0].split("=");
         DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(message[1].getBytes());
         defaultBytesMessage.putHeaders(header[0],header[1]);
-        defaultBytesMessage.putProperties("STORE_PATH",MessageStore.getInstance().getPath());
         return defaultBytesMessage;
     }
 
