@@ -39,12 +39,51 @@ public class SerializeUtil {
 //                String s = it.next();
 //                headers = message.headers().getString(s);
 //            }
-            String topic,queue;
-            topic = message.headers().getString(MessageHeader.TOPIC);
-            queue = message.headers().getString(MessageHeader.QUEUE);
-            String header = ((topic!=null) ? MessageHeader.TOPIC+"="+topic : MessageHeader.QUEUE+"="+queue)+"\n";
-            byte[] headerByte = header.getBytes();
-            byte[] bytes = byteMerger(headerByte, message.getBody());
+            StringBuilder header = new StringBuilder();
+            KeyValue headerkv = message.headers();
+            Set<String> keySet = headerkv.keySet();
+            for (String key : keySet) {
+                header.append(key);
+                header.append("=");
+                header.append(headerkv.getString(key));
+                header.append("\n");
+            }
+
+            StringBuilder properties = new StringBuilder();
+            KeyValue propertieskv = message.properties();
+            if(propertieskv!=null){
+                keySet = propertieskv.keySet();
+                for (String key : keySet) {
+                    properties.append(key);
+                    properties.append("=");
+                    properties.append(propertieskv.getString(key));
+                    properties.append("\n");
+                }
+            }
+            byte[] headerBytes = header.toString().getBytes();
+            int headerLen = headerBytes.length;
+            byte []headerLenBytes = intToByteArray(headerLen);
+            byte[] propertiesBytes = properties.toString().getBytes();
+            int propertiesLen = propertiesBytes.length;
+            byte []propertiesLenBytes = intToByteArray(propertiesLen);
+            byte []bodyBytes = message.getBody();
+            int bodyLen = bodyBytes.length;
+            byte []bodyLenBytes = intToByteArray(bodyLen);
+            byte[] bytes = new byte[headerBytes.length+4
+                    +propertiesBytes.length+4
+                    +bodyBytes.length+4];
+            int bytesOffset = 0;
+            System.arraycopy(headerLenBytes,0,bytes,bytesOffset,headerLenBytes.length);
+            bytesOffset+=headerLenBytes.length;
+            System.arraycopy(propertiesLenBytes,0,bytes,bytesOffset,propertiesLenBytes.length);
+            bytesOffset+=propertiesLenBytes.length;
+            System.arraycopy(bodyLenBytes,0,bytes,bytesOffset,bodyLenBytes.length);
+            bytesOffset+=bodyLenBytes.length;
+            System.arraycopy(headerBytes,0,bytes,bytesOffset,headerBytes.length);
+            bytesOffset+=headerBytes.length;
+            System.arraycopy(propertiesBytes,0,bytes,bytesOffset,propertiesBytes.length);
+            bytesOffset+=propertiesBytes.length;
+            System.arraycopy(bodyBytes,0,bytes,bytesOffset,bodyBytes.length);
             return bytes;
         } catch (Exception e) {
             e.printStackTrace();
@@ -72,11 +111,52 @@ public class SerializeUtil {
 //            e.printStackTrace();
 //        }
 //        return null;
-        String message[]=new String(bytes).split("\n");
-        String []header=message[0].split("=");
-        DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(message[1].getBytes());
-        defaultBytesMessage.putHeaders(header[0],header[1]);
+        int bytesOffset = 0;
+        //取message各个长度的标志
+        byte []headerLenBytes = new byte[4];
+        byte []propertiesLenBytes = new byte[4];
+        byte []bodyLenBytes = new byte[4];
+        System.arraycopy(bytes,bytesOffset,headerLenBytes,0,headerLenBytes.length);
+        bytesOffset+=headerLenBytes.length;
+        System.arraycopy(bytes,bytesOffset,propertiesLenBytes,0,propertiesLenBytes.length);
+        bytesOffset+=propertiesLenBytes.length;
+        System.arraycopy(bytes,bytesOffset,bodyLenBytes,0,bodyLenBytes.length);
+        bytesOffset+=bodyLenBytes.length;
+        int headerLen = byteArrayToInt(headerLenBytes);
+        int propertiesLen = byteArrayToInt(propertiesLenBytes);
+        int bodyLen = byteArrayToInt(bodyLenBytes);
+        //取message实体
+        byte []headerBytes = new byte[headerLen];
+        byte []propertiesBytes = new byte[propertiesLen];
+        byte []bodyBytes = new byte[bodyLen];
+        System.arraycopy(bytes,bytesOffset,headerBytes,0,headerLen);
+        bytesOffset+=headerLen;
+        System.arraycopy(bytes,bytesOffset,propertiesBytes,0,propertiesLen);
+        bytesOffset+=propertiesLen;
+        System.arraycopy(bytes,bytesOffset,bodyBytes,0,bodyLen);
+
+        //byte数组转成对应的属性
+        DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(bodyBytes);
+        String strHeader = new String(headerBytes);
+        for ( String kv : strHeader.split("\n") ) {
+            String []kvArray=kv.split("=");
+            defaultBytesMessage.putHeaders(kvArray[0],kvArray[1]);
+        }
+
+        String strProperties = new String(propertiesBytes);
+        if(!strProperties.equals("")){
+            for ( String kv : strProperties.split("\n") ) {
+                String []kvArray=kv.split("=");
+                defaultBytesMessage.putProperties(kvArray[0],kvArray[1]);
+            }
+        }
         return defaultBytesMessage;
+
+//        String message[]=new String(bytes).split("\n");
+//        String []header=message[0].split("=");
+//        DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(message[1].getBytes());
+//        defaultBytesMessage.putHeaders(header[0],header[1]);
+//        return defaultBytesMessage;
     }
 
     public static byte[] intToByteArray(int i) {
