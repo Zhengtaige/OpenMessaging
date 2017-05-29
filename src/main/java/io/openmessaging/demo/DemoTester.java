@@ -131,7 +131,7 @@ public class DemoTester {
                 } else {
                     if(queue.equals(queue1)){
                         Assert.assertEquals(queue1, queue);
-                        Assert.assertEquals(messagesForQueue2.get(queue1Offset++), message);
+                        Assert.assertEquals(messagesForQueue1.get(queue1Offset++), message);
                     }else{
                         queue2Offset++;
                     }
