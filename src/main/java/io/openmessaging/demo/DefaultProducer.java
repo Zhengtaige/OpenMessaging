@@ -1,7 +1,13 @@
 package io.openmessaging.demo;
 
-import io.openmessaging.*;
-
+import io.openmessaging.BatchToPartition;
+import io.openmessaging.BytesMessage;
+import io.openmessaging.KeyValue;
+import io.openmessaging.Message;
+import io.openmessaging.MessageFactory;
+import io.openmessaging.MessageHeader;
+import io.openmessaging.Producer;
+import io.openmessaging.Promise;
 import java.io.IOException;
 
 public class DefaultProducer  implements Producer {
@@ -84,7 +90,7 @@ public class DefaultProducer  implements Producer {
 
     @Override public void flush() {
         try {
-            messageStore.closeFilechannel();
+            messageStore.closeStream();
         } catch (IOException e) {
             e.printStackTrace();
         }

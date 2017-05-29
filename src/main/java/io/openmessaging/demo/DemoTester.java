@@ -109,7 +109,6 @@ public class DemoTester {
                     //拉取为null则认为消息已经拉取完毕
                     break;
                 }
-
                 String topic = message.headers().getString(MessageHeader.TOPIC);
                 String queue = message.headers().getString(MessageHeader.QUEUE);
                 //实际测试时，会一一比较各个字段

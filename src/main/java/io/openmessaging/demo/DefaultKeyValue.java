@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultKeyValue implements KeyValue,Serializable {
+public class DefaultKeyValue implements KeyValue {
 
     private final Map<String, Object> kvs = new HashMap<>();
     @Override
