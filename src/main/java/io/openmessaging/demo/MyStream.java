@@ -10,7 +10,7 @@ import java.io.*;
 public class MyStream {
     BufferedOutputStream bufferedOutputStream;
     BufferedInputStream bufferedInputStream;
-    private final int CACHE_SIZE = 16 * 1024 * 1024;
+    private final int CACHE_SIZE = 256 * 1024;
     private int cacheLen=0;
     private byte[] cacheBytes = new byte[CACHE_SIZE];
     public final static int WRITE=0;
