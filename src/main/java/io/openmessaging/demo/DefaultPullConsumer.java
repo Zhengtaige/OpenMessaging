@@ -18,10 +18,10 @@ public class DefaultPullConsumer implements PullConsumer {
     private Set<String> buckets = new HashSet<>();
     private List<String> bucketList = new ArrayList<>();
 
-    private int lastIndex = 0;
 
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setPath(properties.getString("STORE_PATH"));
     }
 
 

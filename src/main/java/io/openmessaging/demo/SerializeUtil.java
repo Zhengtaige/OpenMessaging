@@ -3,7 +3,9 @@ package io.openmessaging.demo;
 /**
  * Created by Then on 2017/5/24.
  */
+import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
+import io.openmessaging.MessageHeader;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -16,12 +18,12 @@ public class SerializeUtil {
     /**
      * 序列化
      *
-     * @param object
+     * @param message
      * @return
      */
     public static byte[] serialize(DefaultBytesMessage message) {
-        ObjectOutputStream oos = null;
-        ByteArrayOutputStream baos = null;
+//        ObjectOutputStream oos = null;
+//        ByteArrayOutputStream baos = null;
         try {
             // 序列化
 //            baos = new ByteArrayOutputStream();
@@ -31,13 +33,17 @@ public class SerializeUtil {
 //            baos.close();
 //            byte[] bytes = baos.toByteArray();
 //            return bytes;
-            String headers = "";
-            Set<String> set = message.headers().keySet();
-            for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
-                String s = it.next();
-                headers = message.headers().getString(s);
-            }
-            byte[] headerByte = headers.getBytes();
+//            String headers = "";
+//            Set<String> set = message.headers().keySet();
+//            for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
+//                String s = it.next();
+//                headers = message.headers().getString(s);
+//            }
+            String topic,queue;
+            topic = message.headers().getString(MessageHeader.TOPIC);
+            queue = message.headers().getString(MessageHeader.QUEUE);
+            String header = ((topic!=null) ? MessageHeader.TOPIC+"="+topic : MessageHeader.QUEUE+"="+queue)+"\n";
+            byte[] headerByte = header.getBytes();
             byte[] bytes = byteMerger(headerByte, message.getBody());
             return bytes;
         } catch (Exception e) {
@@ -53,19 +59,25 @@ public class SerializeUtil {
      * @return
      */
     public static Object unserialize(byte[] bytes) {
-        ByteArrayInputStream bais = null;
-        try {
-            // 反序列化
-            bais = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            Object object = ois.readObject();
-            ois.close();
-            bais.close();
-            return object;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+//        ByteArrayInputStream bais = null;
+//        try {
+//            // 反序列化
+//            bais = new ByteArrayInputStream(bytes);
+//            ObjectInputStream ois = new ObjectInputStream(bais);
+//            Object object = ois.readObject();
+//            ois.close();
+//            bais.close();
+//            return object;
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+        String message[]=new String(bytes).split("\n");
+        String []header=message[0].split("=");
+        DefaultBytesMessage defaultBytesMessage = new DefaultBytesMessage(message[1].getBytes());
+        defaultBytesMessage.putHeaders(header[0],header[1]);
+        defaultBytesMessage.putProperties("STORE_PATH",MessageStore.getInstance().getPath());
+        return defaultBytesMessage;
     }
 
     public static byte[] intToByteArray(int i) {
