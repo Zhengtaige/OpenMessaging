@@ -24,12 +24,12 @@ public class MyStream {
         }
     }
 
-    public void write(Message message) throws IOException {
+    public void  write(Message message) throws IOException {
+        synchronized(this){
             byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
             int messagelength=serializeBytes.length;
             byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
             byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
-        synchronized (this){
             if(tmpbytes.length+cacheLen>CACHE_SIZE){
                 bufferedOutputStream.write(cacheBytes,0,cacheLen);
                 System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
