@@ -27,16 +27,14 @@ public class MyStream {
     public void  write(Message message) throws IOException {
         synchronized(this){
             byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
-            int messagelength=serializeBytes.length;
-            byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
-            byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
-            if(tmpbytes.length+cacheLen>CACHE_SIZE){
+
+            if(serializeBytes.length+cacheLen>CACHE_SIZE){
                 bufferedOutputStream.write(cacheBytes,0,cacheLen);
-                System.arraycopy(tmpbytes,0,cacheBytes,0,tmpbytes.length);
-                cacheLen = tmpbytes.length;
+                System.arraycopy(serializeBytes,0,cacheBytes,0,serializeBytes.length);
+                cacheLen = serializeBytes.length;
             }else {
-                System.arraycopy(tmpbytes,0,cacheBytes,cacheLen,tmpbytes.length);
-                cacheLen += tmpbytes.length;
+                System.arraycopy(serializeBytes,0,cacheBytes,cacheLen,serializeBytes.length);
+                cacheLen += serializeBytes.length;
             }
         }
     }
