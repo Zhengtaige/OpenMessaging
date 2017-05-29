@@ -3,30 +3,26 @@ package io.openmessaging.demo;
 import io.openmessaging.Message;
 
 import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
 
     private static final MessageStore INSTANCE = new MessageStore();
-    private static String path;
+    private String path;
     private static Map<String, MyStream> streamMap = new HashMap<>();
     private boolean closing = false;
-    private AtomicInteger atomicInteger = new AtomicInteger();
 
     public static MessageStore getInstance() {
         return INSTANCE;
     }
 
-    public static void setPath(String path) {
+    public void setPath(String path) {
         synchronized (MessageStore.class){
-            if (MessageStore.path != null) return;
+            if (this.path != null) return;
         }
-        MessageStore.path = path;
+        this.path = path;
         try {
             Files.createDirectories(Paths.get(path));
         } catch (IOException e) {
@@ -34,10 +30,12 @@ public class MessageStore {
         }
     }
 
-
+    public  String getPath() {
+        return path;
+    }
 
     public   void putMessage(String bucket, Message message) throws IOException {
-        MyStream myStream=null;
+        MyStream myStream;
         synchronized (this){
             if(!streamMap.containsKey(bucket)){
                 myStream= new MyStream(path+"\\"+bucket+".ms",MyStream.WRITE);
@@ -65,7 +63,7 @@ public class MessageStore {
 //        }
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
-       MyStream myStream=null;
+       MyStream myStream;
        if(!streamMap.containsKey(bucket)){
            myStream= new MyStream(path+"\\"+bucket+".ms", MyStream.READ);
            streamMap.put(bucket,myStream);
