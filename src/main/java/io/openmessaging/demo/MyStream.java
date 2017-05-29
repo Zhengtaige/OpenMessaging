@@ -23,7 +23,7 @@ public class MyStream {
             CACHE_SIZE = 256 * 1024;
             bufferedOutputStream = new BufferedOutputStream(new FileOutputStream(new File(path)));
         }else{
-            CACHE_SIZE = 30 * 1024 * 1024;
+            CACHE_SIZE = 16 * 1024 * 1024;
             bufferedInputStream = new BufferedInputStream(new FileInputStream(new File(path)));
         }
         cacheBytes = new byte[CACHE_SIZE];
