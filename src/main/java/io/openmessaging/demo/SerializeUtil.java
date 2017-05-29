@@ -59,18 +59,19 @@ public class SerializeUtil {
             int propertiesLen = propertiesBytes.length;
             byte []propertiesLenBytes = intToByteArray(propertiesLen);
             byte []bodyBytes = message.getBody();
-            int bodyLen = bodyBytes.length;
-            byte []bodyLenBytes = intToByteArray(bodyLen);
-            byte[] bytes = new byte[headerBytes.length+4
-                    +propertiesBytes.length+4
-                    +bodyBytes.length+4];
+            int messageLen = 4+4
+                    +headerBytes.length
+                    +propertiesBytes.length
+                    +bodyBytes.length;
+            byte []messageLenBytes = intToByteArray(messageLen);
+            byte[] bytes = new byte[messageLen+4];
             int bytesOffset = 0;
+            System.arraycopy(messageLenBytes,0,bytes,bytesOffset,messageLenBytes.length);
+            bytesOffset+=messageLenBytes.length;
             System.arraycopy(headerLenBytes,0,bytes,bytesOffset,headerLenBytes.length);
             bytesOffset+=headerLenBytes.length;
             System.arraycopy(propertiesLenBytes,0,bytes,bytesOffset,propertiesLenBytes.length);
             bytesOffset+=propertiesLenBytes.length;
-            System.arraycopy(bodyLenBytes,0,bytes,bytesOffset,bodyLenBytes.length);
-            bytesOffset+=bodyLenBytes.length;
             System.arraycopy(headerBytes,0,bytes,bytesOffset,headerBytes.length);
             bytesOffset+=headerBytes.length;
             System.arraycopy(propertiesBytes,0,bytes,bytesOffset,propertiesBytes.length);
@@ -107,16 +108,13 @@ public class SerializeUtil {
         //取message各个长度的标志
         byte []headerLenBytes = new byte[4];
         byte []propertiesLenBytes = new byte[4];
-        byte []bodyLenBytes = new byte[4];
         System.arraycopy(bytes,bytesOffset,headerLenBytes,0,headerLenBytes.length);
         bytesOffset+=headerLenBytes.length;
         System.arraycopy(bytes,bytesOffset,propertiesLenBytes,0,propertiesLenBytes.length);
         bytesOffset+=propertiesLenBytes.length;
-        System.arraycopy(bytes,bytesOffset,bodyLenBytes,0,bodyLenBytes.length);
-        bytesOffset+=bodyLenBytes.length;
         int headerLen = byteArrayToInt(headerLenBytes);
         int propertiesLen = byteArrayToInt(propertiesLenBytes);
-        int bodyLen = byteArrayToInt(bodyLenBytes);
+        int bodyLen = bytes.length-headerLen-propertiesLen-8;
         //取message实体
         byte []headerBytes = new byte[headerLen];
         byte []propertiesBytes = new byte[propertiesLen];
