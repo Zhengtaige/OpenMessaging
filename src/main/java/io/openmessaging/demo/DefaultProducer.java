@@ -8,18 +8,24 @@ import io.openmessaging.MessageFactory;
 import io.openmessaging.MessageHeader;
 import io.openmessaging.Producer;
 import io.openmessaging.Promise;
+import java.io.IOException;
 
 public class DefaultProducer  implements Producer {
 
     private MessageFactory messageFactory = new DefaultMessageFactory();
-    private MessageStore messageStore = MessageStore.getInstance();
-
-    private MyMessageStore myMessageStore = MyMessageStore.getInstance();
 
     private KeyValue properties;
 
+    private MessageStore messageStore = MessageStore.getInstance();
+
+    public static int produceNum=0;
+
     public DefaultProducer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setPath(properties.getString("STORE_PATH"));
+        synchronized (Producer.class){
+            produceNum++;
+        }
     }
 
 
@@ -51,8 +57,11 @@ public class DefaultProducer  implements Producer {
         if ((topic == null && queue == null) || (topic != null && queue != null)) {
             throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
         }
-        myMessageStore.putMessage(topic, queue, ((DefaultBytesMessage)message).getBody());
-        messageStore.putMessage(topic != null ? topic : queue, message);
+        try {
+            messageStore.putMessage(topic != null ? topic : queue, message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override public void send(Message message, KeyValue properties) {
@@ -84,6 +93,15 @@ public class DefaultProducer  implements Producer {
     }
 
     @Override public void flush() {
-
+        synchronized (Producer.class){
+            produceNum--;
+            if(produceNum==0){
+                try {
+                    messageStore.closeStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

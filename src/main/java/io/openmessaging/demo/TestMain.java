@@ -1,69 +1,90 @@
 package io.openmessaging.demo;
 
-import java.io.IOException;
+import io.openmessaging.KeyValue;
+import io.openmessaging.Producer;
+
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.KeyStore;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Created by autulin on 2017/5/12.
  */
 public class TestMain {
     public static void main(String[] args) throws IOException {
-        Path path = Paths.get("/test");
-        Files.createDirectories(path);
-        Runnable runnable = () -> {
-            while (true) {
-                int t = getNewInt();
-                if (t > 50000) {
-                    System.out.println("end: "+System.currentTimeMillis()+ Thread.currentThread().getName());
-                    return;
-                }
-                try {
-                    Files.write(Paths.get("/test/"+t), new byte[]{(byte) i});
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
+        DefaultBytesMessage message = new DefaultBytesMessage("test".getBytes());
+        message.putHeaders("queue", "quueueue");
+        message.putHeaders("tttt", 1);
+        message.putHeaders("double", 123.123);
 
-        System.out.println("start: "+System.currentTimeMillis());
-        for (int i = 0; i < 8; i++) {
-            new Thread(runnable).start();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        Set<String> set = message.headers().keySet();
+        for (Iterator<String> it = set.iterator(); it.hasNext(); ) {
+            String s = it.next();
+            stringBuilder.append(s);
+            stringBuilder.append('=');
+            stringBuilder.append(message.headers().getString(s));
+            stringBuilder.append('\n');
+        }
+        byte[] header = stringBuilder.toString().getBytes();
+        int headerLength = header.length;
+        byte[] bytes = byteMerger(header, message.getBody());
+        int total = bytes.length;
+
+
+        DefaultBytesMessage message1 = new DefaultBytesMessage(message.getBody());
+        String headers = new String(header);
+        for (String s : headers.split("\n")){
+            String[] t = s.split("=");
+            System.out.println(t[0]+"="+t[1]);
+
         }
 
-        try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        i = 0;
-        runnable = () -> {
-            byte[] bytes;
-            while (true) {
-                int t = getNewInt();
-                if (t > 50000) {
-                    System.out.println("end: "+System.currentTimeMillis()+ Thread.currentThread().getName());
-                    return;
-                }
-                try {
-                    bytes = Files.readAllBytes(Paths.get("/test/"+t));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        String s = "123";
+        System.out.println((s instanceof String ));
+        System.out.println((Object)s instanceof String);
 
-            }
-        };
-        System.out.println("start: "+System.currentTimeMillis());
-        for (int i = 0; i < 8; i++) {
-            new Thread(runnable).start();
-        }
+
+
 
     }
 
-    public static  int i = 0;
-    public static synchronized int getNewInt(){
-        return i++;
+    public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){
+        byte[] byte_3 = new byte[byte_1.length+byte_2.length];
+        System.arraycopy(byte_1, 0, byte_3, 0, byte_1.length);
+        System.arraycopy(byte_2, 0, byte_3, byte_1.length, byte_2.length);
+        return byte_3;
     }
 
+    public static byte[] intToByteArray(int i) {
+        byte[] result = new byte[4];
+        //由高位到低位
+        result[0] = (byte)((i >> 24) & 0xFF);
+        result[1] = (byte)((i >> 16) & 0xFF);
+        result[2] = (byte)((i >> 8) & 0xFF);
+        result[3] = (byte)(i & 0xFF);
+        return result;
+    }
+
+    /**
+     * byte[]转int
+     * @param bytes
+     * @return
+     */
+    public static int byteArrayToInt(byte[] bytes) {
+        int value= 0;
+        //由高位到低位
+        for (int i = 0; i < 4; i++) {
+            int shift= (4 - 1 - i) * 8;
+            value +=(bytes[i] & 0x000000FF) << shift;//往高位游
+        }
+        return value;
+    }
 }
