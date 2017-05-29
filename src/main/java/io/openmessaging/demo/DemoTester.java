@@ -135,7 +135,6 @@ public class DemoTester {
                     }else{
                         queue2Offset++;
                     }
-
                 }
             }
             long endConsumer = System.currentTimeMillis();
