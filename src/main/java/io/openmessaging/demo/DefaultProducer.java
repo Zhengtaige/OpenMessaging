@@ -50,18 +50,19 @@ public class DefaultProducer  implements Producer {
     }
 
     @Override public void send(Message message) {
-        if (message == null) throw new ClientOMSException("Message should not be null");
-        String topic = message.headers().getString(MessageHeader.TOPIC);
-        String queue = message.headers().getString(MessageHeader.QUEUE);
-        //一个message要么是topic里面的要么是queue里面的，这个是在初始化数据的时候定的，BytesMessage createBytesMessageToTopic(String topic, byte[] body)，topic作为了header
-        if ((topic == null && queue == null) || (topic != null && queue != null)) {
-            throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
-        }
-        try {
-            messageStore.putMessage(topic != null ? topic : queue, message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//            if (message == null) throw new ClientOMSException("Message should not be null");
+//            String topic = message.headers().getString(MessageHeader.TOPIC);
+//            String queue = message.headers().getString(MessageHeader.QUEUE);
+//            //一个message要么是topic里面的要么是queue里面的，这个是在初始化数据的时候定的，BytesMessage createBytesMessageToTopic(String topic, byte[] body)，topic作为了header
+//            if ((topic == null && queue == null) || (topic != null && queue != null)) {
+//                throw new ClientOMSException(String.format("Queue:%s Topic:%s should put one and only one", true, queue));
+//            }
+//            try {
+//                messageStore.putMessage(topic != null ? topic : queue, message);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+        messageStore.putInQue(message);
     }
 
     @Override public void send(Message message, KeyValue properties) {
