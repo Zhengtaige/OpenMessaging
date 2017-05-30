@@ -8,6 +8,7 @@ import java.util.Set;
 import io.openmessaging.BytesMessage;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
+import org.junit.Assert;
 
 public class DefaultBytesMessage implements BytesMessage,Serializable{
 
@@ -102,9 +103,30 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
 //        return ret;
 //    }
 
-
     @Override
     public boolean equals(Object obj) {
+        DefaultBytesMessage actualMessage = (DefaultBytesMessage) obj;
+        KeyValue headerkv = actualMessage.headers();
+        Set<String> keySet = headerkv.keySet();
+        for (String key : keySet) {
+            _equal(this.headers.getString(key), headerkv.getString(key));
+        }
+
+        KeyValue propertieskv = actualMessage.properties();
+        if(propertieskv!=null){
+            keySet = propertieskv.keySet();
+            for (String key : keySet) {
+                _equal(this.properties.getString(key), propertieskv.getString(key));
+            }
+        }
+
+        Assert.assertArrayEquals(this.body, actualMessage.getBody());
         return true;
+    }
+
+    public void _equal(String expected, String actual){
+        if (!expected.equals(actual)) {
+            throw new RuntimeException("expected:"+ expected + ", actual:" + actual);
+        }
     }
 }

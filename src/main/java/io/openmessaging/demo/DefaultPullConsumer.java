@@ -3,7 +3,6 @@ package io.openmessaging.demo;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
 import io.openmessaging.PullConsumer;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -18,10 +17,10 @@ public class DefaultPullConsumer implements PullConsumer {
     private Set<String> buckets = new HashSet<>();
     private List<String> bucketList = new ArrayList<>();
 
-    private int lastIndex = 0;
 
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
+        messageStore.setPath(properties.getString("STORE_PATH"));
     }
 
 

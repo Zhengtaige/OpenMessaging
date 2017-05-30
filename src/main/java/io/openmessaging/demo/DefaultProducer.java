@@ -1,21 +1,31 @@
 package io.openmessaging.demo;
 
-import io.openmessaging.*;
-
+import io.openmessaging.BatchToPartition;
+import io.openmessaging.BytesMessage;
+import io.openmessaging.KeyValue;
+import io.openmessaging.Message;
+import io.openmessaging.MessageFactory;
+import io.openmessaging.MessageHeader;
+import io.openmessaging.Producer;
+import io.openmessaging.Promise;
 import java.io.IOException;
 
 public class DefaultProducer  implements Producer {
 
     private MessageFactory messageFactory = new DefaultMessageFactory();
 
-
     private KeyValue properties;
 
     private MessageStore messageStore = MessageStore.getInstance();
 
+    public static int produceNum=0;
+
     public DefaultProducer(KeyValue properties) {
         this.properties = properties;
         messageStore.setPath(properties.getString("STORE_PATH"));
+        synchronized (Producer.class){
+            produceNum++;
+        }
     }
 
 
@@ -83,10 +93,15 @@ public class DefaultProducer  implements Producer {
     }
 
     @Override public void flush() {
-        try {
-            messageStore.closeFilechannel();
-        } catch (IOException e) {
-            e.printStackTrace();
+        synchronized (Producer.class){
+            produceNum--;
+            if(produceNum==0){
+                try {
+                    messageStore.closeStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 }
