@@ -8,6 +8,7 @@ import java.util.Set;
 import io.openmessaging.BytesMessage;
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
+import io.openmessaging.MessageHeader;
 import org.junit.Assert;
 
 public class DefaultBytesMessage implements BytesMessage,Serializable{
@@ -119,7 +120,20 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
                 _equal(this.properties.getString(key), propertieskv.getString(key));
             }
         }
-
+//        String topic = actualMessage.headers().getString(MessageHeader.TOPIC);
+//        String queue = actualMessage.headers().getString(MessageHeader.QUEUE);
+//        String bucket = (topic!=null) ? topic : queue;
+//        int num=-1;
+//        if(bucket.equals("TOPIC1")){
+//            num=DemoTester.topic1Offset;
+//        }else if(bucket.equals("TOPIC2")){
+//            num=DemoTester.topic2Offset;
+//        }else if(bucket.equals("QUEUE1")){
+//            num=DemoTester.queue1Offset;
+//        } else if(bucket.equals("QUEUE2")){
+//            num=DemoTester.queue2Offset;
+//        }
+//        System.out.println(bucket+":"+num);
         Assert.assertArrayEquals(this.body, actualMessage.getBody());
         return true;
     }

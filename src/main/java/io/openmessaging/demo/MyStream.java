@@ -32,6 +32,8 @@ public class MyStream {
     public void  write(Message message) throws IOException {
         synchronized(this){
             byte[] serializeBytes=SerializeUtil.serialize((DefaultBytesMessage)message);
+            int messageLen = serializeBytes.length;
+            serializeBytes=SerializeUtil.byteMerger(SerializeUtil.intToByteArray(messageLen),serializeBytes);
             if(serializeBytes.length+cacheLen>CACHE_SIZE){
                 bufferedOutputStream.write(cacheBytes,0,cacheLen);
                 System.arraycopy(serializeBytes,0,cacheBytes,0,serializeBytes.length);
