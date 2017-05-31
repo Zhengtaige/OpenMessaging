@@ -66,9 +66,6 @@ public class MessageStore {
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
        MyStream myStream;
-       if(!bucketConsumerMap.containsKey(bucket)){
-           return null;
-       }
        if(!streamMap.containsKey(bucket)){
            myStream= new MyStream(path+"\\"+bucket+".ms", MyStream.READ);
            streamMap.put(bucket,myStream);
@@ -79,14 +76,13 @@ public class MessageStore {
            ConcurrentLinkedQueue<DefaultPullConsumer> cons = bucketConsumerMap.get(bucket);
            Message message = myStream.read();
            if(message == null){
-               bucketConsumerMap.remove(bucket);
+//               bucketConsumerMap.remove(bucket);
                return null;
            }
            for (DefaultPullConsumer consumer :
                    cons ) {
                consumer.messageQueue.add(message);
            }
-
            return message;
        }
    }
