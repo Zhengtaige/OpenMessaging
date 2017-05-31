@@ -75,13 +75,12 @@ public class MessageStore {
        synchronized (myStream) {
            ConcurrentLinkedQueue<DefaultPullConsumer> cons = bucketConsumerMap.get(bucket);
            Message message = myStream.read();
-           if(message == null){
-//               bucketConsumerMap.remove(bucket);
-               return null;
+           if(message == null ){
+               message = new DefaultBytesMessage(null);
            }
            for (DefaultPullConsumer consumer :
                    cons ) {
-               consumer.messageQueue.add(message);
+               consumer.messageQueue.offer(message);
            }
            return message;
        }
@@ -93,7 +92,6 @@ public class MessageStore {
         Iterator<Map.Entry<String, MyStream>> iterator = streamMap.entrySet().iterator();
         while(iterator.hasNext()){
             MyStream mystream = iterator.next().getValue();
-            mystream.writeCache();
             mystream.close();
         }
         streamMap.clear();

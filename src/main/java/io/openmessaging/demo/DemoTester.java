@@ -100,12 +100,15 @@ public class DemoTester {
 
 //        消费样例2，实际测试时会Kill掉发送进程，另取进程进行消费
 //        这是多个topic的情况
-        {
+
             PullConsumer consumer2 = new DefaultPullConsumer(properties);
             List<String> topics = new ArrayList<>();
             topics.add(topic1);
             topics.add(topic2);
             consumer2.attachQueue(queue1, topics);
+
+//            PullConsumer consumer3 = new DefaultPullConsumer(properties);
+//            consumer3.attachQueue(queue2, topics);
 
             int queue2Offset = 0, queue1Offset = 0, topic1Offset = 0, topic2Offset = 0;
 
@@ -140,48 +143,44 @@ public class DemoTester {
             long T2 = endConsumer - startConsumer;
             System.out.println(String.format("Team2 cost:%d ms tps:%d q/ms", T2 + T1, (queue2Offset + topic1Offset + topic2Offset)/(T1 + T2)));
             System.out.println(queue1Offset + topic1Offset + topic2Offset);
-        }
 
-        {
-            PullConsumer consumer3 = new DefaultPullConsumer(properties);
-            List<String> topics = new ArrayList<>();
-            topics.add(topic1);
-            topics.add(topic2);
-            consumer3.attachQueue(queue2, topics);
 
-            int queue2Offset = 0, queue1Offset = 0, topic1Offset = 0, topic2Offset = 0;
 
-            long startConsumer = System.currentTimeMillis();
-            while (true) {
-                Message message = consumer3.poll();
-                if (message == null) {
-                    //拉取为null则认为消息已经拉取完毕
-                    break;
-                }
-                String topic = message.headers().getString(MessageHeader.TOPIC);
-                String queue = message.headers().getString(MessageHeader.QUEUE);
-                //实际测试时，会一一比较各个字段
-                if (topic != null) {
-                    //遍历topic
-                    if (topic.equals(topic1)) {
-                        Assert.assertEquals(messagesForTopic1.get(topic1Offset++), message);
-                    } else {
-                        Assert.assertEquals(topic2, topic);
-                        Assert.assertEquals(messagesForTopic2.get(topic2Offset++), message);
-                    }
-                } else {
-                    if(queue.equals(queue2)){
-                        Assert.assertEquals(queue2, queue);
-                        Assert.assertEquals(messagesForQueue2.get(queue2Offset++), message);
-                    }else{
-                        queue1Offset++;
-                    }
-                }
-            }
-            long endConsumer = System.currentTimeMillis();
-            long T2 = endConsumer - startConsumer;
-            System.out.println(String.format("Team2 cost:%d ms tps:%d q/ms", T2 + T1, (queue2Offset + topic1Offset + topic2Offset)/(T1 + T2)));
-            System.out.println(queue2Offset + topic1Offset + topic2Offset);
-        }
+
+//            queue2Offset = 0;
+//            queue1Offset = 0;
+//            topic1Offset = 0;
+//            topic2Offset = 0;
+//            startConsumer = System.currentTimeMillis();
+//            while (true) {
+//                Message message = consumer3.poll();
+//                if (message == null) {
+//                    //拉取为null则认为消息已经拉取完毕
+//                    break;
+//                }
+//                String topic = message.headers().getString(MessageHeader.TOPIC);
+//                String queue = message.headers().getString(MessageHeader.QUEUE);
+//                //实际测试时，会一一比较各个字段
+//                if (topic != null) {
+//                    //遍历topic
+//                    if (topic.equals(topic1)) {
+//                        Assert.assertEquals(messagesForTopic1.get(topic1Offset++), message);
+//                    } else {
+//                        Assert.assertEquals(topic2, topic);
+//                        Assert.assertEquals(messagesForTopic2.get(topic2Offset++), message);
+//                    }
+//                } else {
+//                    if(queue.equals(queue2)){
+//                        Assert.assertEquals(queue2, queue);
+//                        Assert.assertEquals(messagesForQueue2.get(queue2Offset++), message);
+//                    }else{
+//                        queue1Offset++;
+//                    }
+//                }
+//            }
+//            endConsumer = System.currentTimeMillis();
+//            T2 = endConsumer - startConsumer;
+//            System.out.println(String.format("Team2 cost:%d ms tps:%d q/ms", T2 + T1, (queue2Offset + topic1Offset + topic2Offset)/(T1 + T2)));
+//            System.out.println(queue2Offset + topic1Offset + topic2Offset);
     }
 }

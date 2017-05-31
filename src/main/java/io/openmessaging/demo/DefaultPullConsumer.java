@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DefaultPullConsumer implements PullConsumer {
@@ -17,8 +19,8 @@ public class DefaultPullConsumer implements PullConsumer {
     private String queue;
     private Set<String> buckets = new HashSet<>();
     private List<String> bucketList = new ArrayList<>();
-    public ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<>();
-
+    public BlockingQueue<Message> messageQueue = new ArrayBlockingQueue<Message>(1024 * 100);
+    public int endedBucketNum;
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
         messageStore.setPath(properties.getString("STORE_PATH"));
@@ -31,21 +33,26 @@ public class DefaultPullConsumer implements PullConsumer {
 
 
     @Override public synchronized Message poll() {
-        if (buckets.size() == 0 || queue == null) {
-            return null;
-        }
         try {
             for (int i = 0; i < bucketList.size(); i++) {
                 String bucket = bucketList.get(i);
-                    if (messageStore.pullMessage(queue, bucket) != null) {
-                        break;
-                    }else{
+                    if (((DefaultBytesMessage)(messageStore.pullMessage(queue, bucket))).getBody()==null) {
                         bucketList.remove(i);
                         i--;
                     }
             }
-            return messageQueue.poll();
+            DefaultBytesMessage message=(DefaultBytesMessage) messageQueue.take();
+            while(message.getBody() == null) {
+                endedBucketNum--;
+                if(endedBucketNum==0){
+                  return null;
+                }
+                message=(DefaultBytesMessage) messageQueue.take();
+            }
+          return message;
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
         return null;
@@ -72,6 +79,7 @@ public class DefaultPullConsumer implements PullConsumer {
         buckets.addAll(topics);
         bucketList.clear();
         bucketList.addAll(buckets);
+        endedBucketNum=bucketList.size();
         for (String bucket:
                 bucketList) {
             if(!messageStore.bucketConsumerMap.containsKey(bucket)){
@@ -80,5 +88,6 @@ public class DefaultPullConsumer implements PullConsumer {
             ConcurrentLinkedQueue consumerQueue = messageStore.bucketConsumerMap.get(bucket);
             consumerQueue.add(this);
         }
+
     }
 }
