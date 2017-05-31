@@ -6,6 +6,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class MessageStore {
@@ -13,7 +15,7 @@ public class MessageStore {
     private static final MessageStore INSTANCE = new MessageStore();
     private String path;
     private static Map<String, MyStream> streamMap = new HashMap<>();
-
+    public ConcurrentHashMap<String, ConcurrentLinkedQueue<DefaultPullConsumer>> bucketConsumerMap = new ConcurrentHashMap<>() ;
     public static MessageStore getInstance() {
         return INSTANCE;
     }
@@ -64,13 +66,29 @@ public class MessageStore {
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
        MyStream myStream;
+       if(!bucketConsumerMap.containsKey(bucket)){
+           return null;
+       }
        if(!streamMap.containsKey(bucket)){
            myStream= new MyStream(path+"\\"+bucket+".ms", MyStream.READ);
            streamMap.put(bucket,myStream);
        }else{
            myStream = streamMap.get(bucket);
        }
-       return myStream.read();
+       synchronized (myStream) {
+           ConcurrentLinkedQueue<DefaultPullConsumer> cons = bucketConsumerMap.get(bucket);
+           Message message = myStream.read();
+           if(message == null){
+               bucketConsumerMap.remove(bucket);
+               return null;
+           }
+           for (DefaultPullConsumer consumer :
+                   cons ) {
+               consumer.messageQueue.add(message);
+           }
+
+           return message;
+       }
    }
 
 

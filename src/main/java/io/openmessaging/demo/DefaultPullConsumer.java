@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class DefaultPullConsumer implements PullConsumer {
     private MessageStore messageStore = MessageStore.getInstance();
@@ -16,7 +17,7 @@ public class DefaultPullConsumer implements PullConsumer {
     private String queue;
     private Set<String> buckets = new HashSet<>();
     private List<String> bucketList = new ArrayList<>();
-
+    public ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<>();
 
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
@@ -35,12 +36,9 @@ public class DefaultPullConsumer implements PullConsumer {
         }
         try {
             for (int i = 0; i < bucketList.size(); i++) {
-                Message message = null;
-                message = messageStore.pullMessage(queue, bucketList.get(i));
-                if (message != null) {
-                    return message;
-                }
+                messageStore.pullMessage(queue, bucketList.get(i));
             }
+            return messageQueue.poll();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -68,5 +66,13 @@ public class DefaultPullConsumer implements PullConsumer {
         buckets.addAll(topics);
         bucketList.clear();
         bucketList.addAll(buckets);
+        for (String bucket:
+                bucketList) {
+            if(!messageStore.bucketConsumerMap.containsKey(bucket)){
+                messageStore.bucketConsumerMap.put(bucket, new ConcurrentLinkedQueue<DefaultPullConsumer>());
+            }
+            ConcurrentLinkedQueue consumerQueue = messageStore.bucketConsumerMap.get(bucket);
+            consumerQueue.add(this);
+        }
     }
 }
