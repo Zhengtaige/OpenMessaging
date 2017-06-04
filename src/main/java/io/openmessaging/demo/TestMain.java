@@ -12,7 +12,9 @@ import java.nio.file.Paths;
  */
 public class TestMain {
     public static void main(String[] args) throws IOException {
-
+        byte[] hLen = new byte[]{3};
+        hLen[0]++;
+        System.out.println(hLen);
     }
 
     public static byte[] byteMerger(byte[] byte_1, byte[] byte_2){

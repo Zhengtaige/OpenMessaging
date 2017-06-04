@@ -16,8 +16,8 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
     public KeyValue properties;
     public byte[] header = new byte[128];
     public byte[] propertie = new byte[128];
-    int headerNum = 0;
-    int propertieNum = 0;
+    byte headerNum = 0;
+    byte propertieNum = 0;
     int headerLen = 0;
     int propertyLen = 0;
     public byte[] body;
@@ -60,7 +60,7 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
 
     @Override public Message putHeaders(String key, String value) {
         headers.put(key, value);
-        if (4+key.length() + value.length()+headerLen > header.length) {
+        if (2+1 + value.length()+headerLen > header.length) {
             byte[] newBytes = new byte[2+1+value.length()+headerLen];
             System.arraycopy(header,0,newBytes,0,headerLen);
             header = newBytes;
@@ -131,28 +131,6 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
         return this;
     }
 
-//    @Override public String toString(){
-//        String ret=new String();
-//        Set<String> keySet = headers.keySet();
-//        Iterator<String> iterator=keySet.iterator();
-//        while(iterator.hasNext()){
-//            String key=iterator.next();
-//            ret+=key+"=";
-//            ret+=headers.getString(key)+"\n";
-//            //TODO:不能确定value是什么类型的，需要捕捉异常或者实现get方法直接获取Object对象，这里先默认都是String
-//        }
-//        ret+="\n";
-//        Set<String> proptiesSet = properties.keySet();
-//        Iterator<String> iteratorpro=proptiesSet.iterator();
-//        while(iteratorpro.hasNext()){
-//        	String keypro=iteratorpro.next();
-//        	ret+=keypro+"=";
-//        	ret+=properties.getString(keypro)+"\n";
-//        }
-//        ret+="\n";
-//        ret+=body.toString();
-//        return ret;
-//    }
 
     @Override
     public boolean equals(Object obj) {
@@ -170,20 +148,6 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
                 _equal(this.properties.getString(key), propertieskv.getString(key));
             }
         }
-//        String topic = actualMessage.headers().getString(MessageHeader.TOPIC);
-//        String queue = actualMessage.headers().getString(MessageHeader.QUEUE);
-//        String bucket = (topic!=null) ? topic : queue;
-//        int num=-1;
-//        if(bucket.equals("TOPIC1")){
-//            num=DemoTester.topic1Offset;
-//        }else if(bucket.equals("TOPIC2")){
-//            num=DemoTester.topic2Offset;
-//        }else if(bucket.equals("QUEUE1")){
-//            num=DemoTester.queue1Offset;
-//        } else if(bucket.equals("QUEUE2")){
-//            num=DemoTester.queue2Offset;
-//        }
-//        System.out.println(bucket+":"+num);
         Assert.assertArrayEquals(this.body, actualMessage.getBody());
         return true;
     }
@@ -196,10 +160,13 @@ public class DefaultBytesMessage implements BytesMessage,Serializable{
 
     public byte[] getBytess() throws IOException {
         int offset = 0;
-        byte[] ret = new byte[4+body.length+2+2+headerLen+propertyLen];
+        byte[] ret = new byte[4+4+body.length+2+headerLen+propertyLen];
         byte[] bodyLen = SerializeUtil.intToByteArray(body.length);
-        byte[] hLen = SerializeUtil.shortToByteArray(headerNum);
-        byte[] pLen = SerializeUtil.shortToByteArray(propertieNum);
+        byte[] hLen = new byte[]{headerNum};
+        byte[] pLen = new byte[]{propertieNum};
+        byte []messageLen = SerializeUtil.intToByteArray(4+body.length+2+headerLen+propertyLen);
+        System.arraycopy(messageLen,0,ret,offset,messageLen.length);
+        offset+=messageLen.length;
         System.arraycopy(bodyLen,0,ret,offset,bodyLen.length);
         offset+=bodyLen.length;
         System.arraycopy(body,0,ret,offset,body.length);

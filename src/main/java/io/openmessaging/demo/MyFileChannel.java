@@ -5,6 +5,7 @@ import io.openmessaging.Message;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 
@@ -16,7 +17,6 @@ public class MyFileChannel {
     private FileChannel fileChannel;
     private MappedByteBuffer mappedByteBuffer;
     private final int MAP_SIZE = 256 * 1024 *1024;
-    private int cacheLen=0;
     public final static int WRITE=0;
     public final static int READ=1;
    public MyFileChannel(String path,int mode){
@@ -31,7 +31,6 @@ public class MyFileChannel {
                e.printStackTrace();
            }
        }else{
-
            try {
                fileChannel = new RandomAccessFile(path,"rw").getChannel();
                mappedByteBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY,0,MAP_SIZE);
@@ -46,14 +45,13 @@ public class MyFileChannel {
 
    public int write(Message message) throws IOException {
        int ret = -1;
-//       byte[] serializeBytes=SerializeUtil.serialize(message);
        byte[] serializeBytes=((DefaultBytesMessage)message).getBytess();
-       int messagelength=serializeBytes.length;
-       byte[] infosizetag= SerializeUtil.intToByteArray(messagelength);
-       byte[] tmpbytes= SerializeUtil.byteMerger(infosizetag,serializeBytes);
+       ByteBuffer byteBuffer;
        synchronized (mappedByteBuffer) {
-           mappedByteBuffer.put(tmpbytes);
+           byteBuffer  = mappedByteBuffer.slice();
+           mappedByteBuffer.position(mappedByteBuffer.position()+serializeBytes.length);
        }
+       byteBuffer.put(serializeBytes);
        return ret;
    }
 
@@ -61,22 +59,16 @@ public class MyFileChannel {
        //读取message长度数据，4个字节
        byte[] bytes;
        int len;
+       ByteBuffer byteBuffer;
        synchronized (mappedByteBuffer) {
            mappedByteBuffer.position(offsetArray[i]);
-           len = mappedByteBuffer.getInt();
-           bytes = new byte[len];
-           mappedByteBuffer.get(bytes);
+           byteBuffer = mappedByteBuffer.slice();
        }
+       len = byteBuffer.getInt();
+       bytes = new byte[len];
+       byteBuffer.get(bytes);
        Message message =  SerializeUtil.unserialize(bytes);
        offsetArray[i] += len + 4;
        return message;
-   }
-
-   public void close() throws IOException {
-       fileChannel.close();
-   }
-
-   public void force() throws IOException {
-//       fileChannel.force(false);
    }
 }

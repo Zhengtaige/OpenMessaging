@@ -83,10 +83,5 @@ public class DefaultProducer  implements Producer {
     }
 
     @Override public void flush() {
-        try {
-            messageStore.closeFilechannel();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 }
