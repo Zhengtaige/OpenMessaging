@@ -2,6 +2,7 @@ package io.openmessaging.demo;
 
 import io.openmessaging.KeyValue;
 import io.openmessaging.Message;
+import io.openmessaging.MessageHeader;
 import io.openmessaging.PullConsumer;
 
 import java.io.IOException;
@@ -15,10 +16,8 @@ public class DefaultPullConsumer implements PullConsumer {
     private MessageStore messageStore = MessageStore.getInstance();
     private KeyValue properties;
     private String queue;
-    private Set<String> buckets = new HashSet<>();
     private List<String> bucketList = new ArrayList<>();
-
-    private int lastIndex = 0;
+    private int[] offsetArray;
 
     public DefaultPullConsumer(KeyValue properties) {
         this.properties = properties;
@@ -31,19 +30,27 @@ public class DefaultPullConsumer implements PullConsumer {
 
 
     @Override public synchronized Message poll() {
-        if (buckets.size() == 0 || queue == null) {
-            return null;
-        }
         try {
             for (int i = 0; i < bucketList.size(); i++) {
+                if(offsetArray[i] == -1){
+                    continue;
+                }
                 Message message = null;
-                message = messageStore.pullMessage(queue, bucketList.get(i));
+                message = messageStore.pullMessage(i, offsetArray, bucketList.get(i));
                 if (message != null) {
+                    if(i == 0){
+                        message.putHeaders(MessageHeader.QUEUE,bucketList.get(i));
+                    }else{
+                        message.putHeaders(MessageHeader.TOPIC,bucketList.get(i));
+                    }
                     return message;
+                }else{
+                    offsetArray[i]=-1;
                 }
             }
         } catch (IOException e) {
-            e.printStackTrace();
+
+           return null;
         }
         return null;
     }
@@ -61,13 +68,9 @@ public class DefaultPullConsumer implements PullConsumer {
     }
 
     @Override public synchronized void attachQueue(String queueName, Collection<String> topics) {
-        if (queue != null && !queue.equals(queueName)) {
-            throw new ClientOMSException("You have alreadly attached to a queue " + queue);
-        }
         queue = queueName;
-        buckets.add(queueName);
-        buckets.addAll(topics);
-        bucketList.clear();
-        bucketList.addAll(buckets);
+        bucketList.add(queueName);
+        bucketList.addAll(topics);
+        offsetArray = new int[bucketList.size()];
     }
 }

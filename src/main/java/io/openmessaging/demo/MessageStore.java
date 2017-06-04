@@ -46,7 +46,7 @@ public class MessageStore {
         myfileChannel.write(message);
     }
 
-   public synchronized Message pullMessage(String queue, String bucket) throws IOException {
+   public  Message pullMessage(int i, int []offsetArray, String bucket) throws IOException {
 //        ArrayList<Message> bucketList = messageBuckets.get(bucket);
 //        if (bucketList == null) {
 //            return null;
@@ -69,7 +69,9 @@ public class MessageStore {
        }else{
            myfileChannel = fileChannelMap.get(bucket);
        }
-       return myfileChannel.read();
+       DefaultBytesMessage message = (DefaultBytesMessage) myfileChannel.read(i , offsetArray);
+
+       return message;
    }
 
 

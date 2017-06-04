@@ -35,6 +35,7 @@ public class DemoTester {
         List<Message> messagesForTopic2 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue1 = new ArrayList<>(messageNum);
         List<Message> messagesForQueue2 = new ArrayList<>(messageNum);
+        long start = System.currentTimeMillis();
         for (int i = 0; i < messageNum; i++) {
             //注意实际比赛可能还会向消息的headers或者properties里面填充其它内容
             messagesForTopic1.add(producer.createBytesMessageToTopic(topic1,  (topic1 + i).getBytes()));
@@ -43,7 +44,7 @@ public class DemoTester {
             messagesForQueue2.add(producer.createBytesMessageToQueue(queue2, (queue2 + i).getBytes()));
         }
 
-        long start = System.currentTimeMillis();
+
         //发送, 实际测试时，会用多线程来发送, 每个线程发送自己的Topic和Queue
         for (int i = 0; i < messageNum; i++) {
             producer.send(messagesForTopic1.get(i));
