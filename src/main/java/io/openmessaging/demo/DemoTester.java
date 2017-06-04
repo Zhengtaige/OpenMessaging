@@ -53,8 +53,8 @@ public class DemoTester {
         System.out.println("sendcost:"+T1);
         //请保证数据写入磁盘中
         try {
-            MessageStore.getInstance().closeFilechannel();
-        } catch (IOException e) {
+           producer.flush();
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
