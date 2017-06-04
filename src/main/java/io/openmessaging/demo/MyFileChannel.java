@@ -44,7 +44,7 @@ public class MyFileChannel {
 
    }
 
-   public synchronized int write(Message message) throws IOException {
+   public int write(Message message) throws IOException {
        int ret = -1;
 //       byte[] serializeBytes=SerializeUtil.serialize(message);
        byte[] serializeBytes=((DefaultBytesMessage)message).getBytess();

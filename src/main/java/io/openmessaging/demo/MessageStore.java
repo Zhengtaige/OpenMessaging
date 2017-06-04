@@ -15,7 +15,6 @@ public class MessageStore {
     private static final MessageStore INSTANCE = new MessageStore();
     private static String path;
     private static Map<String, MyFileChannel> fileChannelMap = new HashMap<>();
-    private boolean closing = false;
 
     public static MessageStore getInstance() {
         return INSTANCE;
@@ -25,8 +24,12 @@ public class MessageStore {
         synchronized (MessageStore.class){
             if (MessageStore.path != null) return;
         }
-        MessageStore.path = path;
         try {
+            for (String filename:
+                new File(path).list()) {
+                fileChannelMap.put(filename,new MyFileChannel(path+"/"+filename ,MyFileChannel.WRITE ));
+            }
+            MessageStore.path = path;
             Files.createDirectories(Paths.get(path));
         } catch (IOException e) {
             e.printStackTrace();
@@ -35,12 +38,13 @@ public class MessageStore {
 
     public   void putMessage(String bucket, Message message) throws IOException {
         MyFileChannel myfileChannel;
-        synchronized (this) {
-            if (!fileChannelMap.containsKey(bucket)) {
-                myfileChannel = new MyFileChannel(path + "\\" + bucket, MyFileChannel.WRITE);
-                fileChannelMap.put(bucket, myfileChannel);
-            } else {
-                myfileChannel = fileChannelMap.get(bucket);
+        myfileChannel = fileChannelMap.get(bucket);
+        if(myfileChannel == null){
+            synchronized (this){
+                if (!fileChannelMap.containsKey(bucket)) {
+                    myfileChannel = new MyFileChannel(path + "\\" + bucket, MyFileChannel.WRITE);
+                    fileChannelMap.put(bucket, myfileChannel);
+                }
             }
         }
         myfileChannel.write(message);
@@ -63,12 +67,7 @@ public class MessageStore {
 //        Message message = bucketList.get(offset);
 //        offsetMap.put(bucket, ++offset);
        MyFileChannel myfileChannel=null;
-       if(!fileChannelMap.containsKey(bucket)){
-           myfileChannel= new MyFileChannel(path+"\\"+bucket, MyFileChannel.READ);
-           fileChannelMap.put(bucket,myfileChannel);
-       }else{
-           myfileChannel = fileChannelMap.get(bucket);
-       }
+       myfileChannel = fileChannelMap.get(bucket);
        DefaultBytesMessage message = null;
        try {
            message = (DefaultBytesMessage) myfileChannel.read(i , offsetArray);
@@ -83,17 +82,19 @@ public class MessageStore {
 
 
     public void closeFilechannel() throws IOException {
-        synchronized (this) {
-            if (closing) return;
-            closing = true;
-        }
-        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
-        while(iterator.hasNext()){
-            MyFileChannel myFileChannel = iterator.next().getValue();
-            myFileChannel.force();
-            myFileChannel.close();
-        }
-        fileChannelMap.clear();
+//        path = null;
+//        fileChannelMap.clear();
+//        synchronized (this) {
+//            if (closing) return;
+//            closing = true;
+//        }
+//        Iterator<Map.Entry<String, MyFileChannel>> iterator = fileChannelMap.entrySet().iterator();
+//        while(iterator.hasNext()){
+//            MyFileChannel myFileChannel = iterator.next().getValue();
+//            myFileChannel.force();
+//            myFileChannel.close();
+//        }
+//        fileChannelMap.clear();
     }
 
     public void force() throws IOException {

@@ -20,6 +20,7 @@ public class DefaultPullConsumer implements PullConsumer {
     private int[] offsetArray;
 
     public DefaultPullConsumer(KeyValue properties) {
+        MessageStore.setPath(properties.getString("STORE_PATH"));
         this.properties = properties;
     }
 
