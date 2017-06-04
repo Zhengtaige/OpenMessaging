@@ -30,28 +30,27 @@ public class DefaultPullConsumer implements PullConsumer {
 
 
     @Override public synchronized Message poll() {
-        try {
-            for (int i = 0; i < bucketList.size(); i++) {
-                if(offsetArray[i] == -1){
-                    continue;
-                }
-                Message message = null;
-                message = messageStore.pullMessage(i, offsetArray, bucketList.get(i));
-                if (message != null) {
-                    if(i == 0){
-                        message.putHeaders(MessageHeader.QUEUE,bucketList.get(i));
-                    }else{
-                        message.putHeaders(MessageHeader.TOPIC,bucketList.get(i));
-                    }
-                    return message;
-                }else{
-                    offsetArray[i]=-1;
-                }
-            }
-        } catch (IOException e) {
 
-           return null;
-        }
+            for (int i = 0; i < bucketList.size(); i++) {
+
+                    if(offsetArray[i] == -1){
+                        continue;
+                    }
+                    Message message = null;
+                    message = messageStore.pullMessage(i, offsetArray, bucketList.get(i));
+                    if (message != null) {
+                        if(i == 0){
+                            message.putHeaders(MessageHeader.QUEUE,bucketList.get(i));
+                        }else{
+                            message.putHeaders(MessageHeader.TOPIC,bucketList.get(i));
+                        }
+                        return message;
+                    }else{
+                        offsetArray[i]=-1;
+                    }
+
+            }
+
         return null;
     }
 

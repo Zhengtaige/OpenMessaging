@@ -44,7 +44,7 @@ public class MyFileChannel {
 
    }
 
-   public int write(Message message) throws IOException {
+   public synchronized int write(Message message) throws IOException {
        int ret = -1;
 //       byte[] serializeBytes=SerializeUtil.serialize(message);
        byte[] serializeBytes=((DefaultBytesMessage)message).getBytess();
@@ -57,10 +57,14 @@ public class MyFileChannel {
 
    public Message read(int i, int []offsetArray) throws IOException {
        //读取message长度数据，4个字节
-       mappedByteBuffer.position(offsetArray[i]);
-       int len = mappedByteBuffer.getInt();
-       byte []bytes = new byte[len];
-       mappedByteBuffer.get(bytes);
+       byte[] bytes;
+       int len;
+       synchronized (mappedByteBuffer) {
+           mappedByteBuffer.position(offsetArray[i]);
+           len = mappedByteBuffer.getInt();
+           bytes = new byte[len];
+           mappedByteBuffer.get(bytes);
+       }
        Message message =  SerializeUtil.unserialize(bytes);
        offsetArray[i] += len + 4;
        return message;
