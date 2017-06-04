@@ -5,12 +5,9 @@ import io.openmessaging.Message;
 import io.openmessaging.MessageHeader;
 import io.openmessaging.PullConsumer;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class DefaultPullConsumer implements PullConsumer {
     private MessageStore messageStore = MessageStore.getInstance();
@@ -30,7 +27,7 @@ public class DefaultPullConsumer implements PullConsumer {
     }
 
 
-    @Override public synchronized Message poll() {
+    @Override public Message poll() {
 
             for (int i = 0; i < bucketList.size(); i++) {
 

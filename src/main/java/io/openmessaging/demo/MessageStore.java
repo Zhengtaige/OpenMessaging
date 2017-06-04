@@ -2,13 +2,14 @@ package io.openmessaging.demo;
 
 import io.openmessaging.Message;
 
-import java.io.*;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 public class MessageStore {
 
@@ -27,7 +28,7 @@ public class MessageStore {
         try {
             for (String filename:
                 new File(path).list()) {
-                fileChannelMap.put(filename,new MyFileChannel(path+"/"+filename ,MyFileChannel.WRITE ));
+                fileChannelMap.put(filename,new MyFileChannel(path+"/"+filename , MyFileChannel.WRITE ));
             }
             MessageStore.path = path;
             Files.createDirectories(Paths.get(path));
@@ -42,15 +43,17 @@ public class MessageStore {
         if(myfileChannel == null){
             synchronized (this){
                 if (!fileChannelMap.containsKey(bucket)) {
-                    myfileChannel = new MyFileChannel(path + "\\" + bucket, MyFileChannel.WRITE);
+                    myfileChannel = new MyFileChannel(path + "/" + bucket, MyFileChannel.WRITE);
                     fileChannelMap.put(bucket, myfileChannel);
+                }else{
+                    myfileChannel = fileChannelMap.get(bucket);
                 }
             }
         }
         myfileChannel.write(message);
     }
 
-   public  Message pullMessage(int i, int []offsetArray, String bucket) {
+   public Message pullMessage(int i, int []offsetArray, String bucket) {
 //        ArrayList<Message> bucketList = messageBuckets.get(bucket);
 //        if (bucketList == null) {
 //            return null;

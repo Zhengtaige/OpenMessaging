@@ -2,11 +2,11 @@ package io.openmessaging.demo;
 
 import io.openmessaging.Message;
 
-import java.io.*;
-import java.nio.ByteBuffer;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Created by Then on 2017/5/27.
@@ -49,9 +49,11 @@ public class MyFileChannel {
 //       byte[] serializeBytes=SerializeUtil.serialize(message);
        byte[] serializeBytes=((DefaultBytesMessage)message).getBytess();
        int messagelength=serializeBytes.length;
-       byte[] infosizetag=SerializeUtil.intToByteArray(messagelength);
-       byte[] tmpbytes=SerializeUtil.byteMerger(infosizetag,serializeBytes);
-       mappedByteBuffer.put(tmpbytes);
+       byte[] infosizetag= SerializeUtil.intToByteArray(messagelength);
+       byte[] tmpbytes= SerializeUtil.byteMerger(infosizetag,serializeBytes);
+       synchronized (mappedByteBuffer) {
+           mappedByteBuffer.put(tmpbytes);
+       }
        return ret;
    }
 
